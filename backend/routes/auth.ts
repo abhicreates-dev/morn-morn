@@ -45,7 +45,7 @@ router.post("/signup", async (req, res) => {
         res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: "Validation error", errors: error.errors });
+            return res.status(400).json({ message: "Validation error", errors: error.issues });
         }
         console.error("Signup error:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -75,7 +75,7 @@ router.post("/login", async (req, res) => {
         res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ message: "Validation error", errors: error.errors });
+            return res.status(400).json({ message: "Validation error", errors: error.issues });
         }
         console.error("Login error:", error);
         res.status(500).json({ message: "Internal server error" });

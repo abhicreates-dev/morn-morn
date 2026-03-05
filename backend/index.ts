@@ -22,6 +22,29 @@ app.get("/health", (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
+
+    // Background job to expire tasks every minute
+    setInterval(async () => {
+        try {
+            const now = new Date();
+            const expiredTasks = await prisma.task.updateMany({
+                where: {
+                    deadlineTimestamp: { lte: now },
+                    completed: false,
+                    challengeStop: false,
+                },
+                data: {
+                    challengeStop: true,
+                    aiVerdict: false, // Default to failed if time ran out
+                },
+            });
+            if (expiredTasks.count > 0) {
+                console.log(`Expired ${expiredTasks.count} past-due tasks`);
+            }
+        } catch (error) {
+            console.error("Error in expiration job:", error);
+        }
+    }, 60 * 1000);
 });
 
 export { app, prisma };
