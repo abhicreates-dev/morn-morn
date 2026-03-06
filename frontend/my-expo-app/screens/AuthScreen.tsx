@@ -4,7 +4,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import axios from 'axios';
 import { useAuth } from '../stores/useAuth'; // We will create this Zustand store
-import { API_URL } from 'config'; // We will create this
+import { API_URL } from '../config';
 
 type Props = {
     navigation: StackNavigationProp<RootStackParamList, 'Auth'>;
@@ -30,18 +30,11 @@ export default function AuthScreen({ navigation }: Props) {
             const endpoint = isLogin ? '/auth/login' : '/auth/signup';
             const payload = isLogin ? { email, password } : { name, email, password };
 
-
-            console.log("API URL:", `${API_URL}${endpoint}`);
-            const response = await fetch(`${API_URL}${endpoint}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+            const response = await axios.post(`${API_URL}${endpoint}`, payload, {
+                headers: { 'Content-Type': 'application/json' },
             });
 
-            const data = await response.json();
-            console.log(data);
+            const data = response.data;
 
             setToken(data.token);
             setUser(data.user);

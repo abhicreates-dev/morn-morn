@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import Animated, {

@@ -1,8 +1,10 @@
+import 'react-native-get-random-values';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './global.css';
+import { Buffer } from 'buffer';
 
 // Screens
 import OnboardingScreen from './screens/OnboardingScreen';
@@ -26,6 +28,9 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
+  // web3.js needs Buffer in React Native
+  (global as any).Buffer = (global as any).Buffer || Buffer;
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -33,7 +38,6 @@ export default function App() {
           initialRouteName="Onboarding"
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#faf7f1' },
           }}
         >
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />

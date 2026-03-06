@@ -4,3 +4,5 @@ import { Platform } from 'react-native';
 export const API_URL = Platform.OS === 'android'
     ? 'http://10.0.2.2:3000'
     : 'http://192.168.0.201:3000';
+
+export const SOLANA_CLUSTER = 'devnet' as const;
