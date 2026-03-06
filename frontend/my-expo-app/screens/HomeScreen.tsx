@@ -60,7 +60,7 @@ export default function HomeScreen({ navigation }: Props) {
     const dates = Array.from({ length: 14 }).map((_, i) => dayjs().subtract(7, 'day').add(i, 'day'));
     const currentDayStr = dayjs().format('YYYY-MM-DD');
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         try {
             const res = await axios.get(`${API_URL}/tasks/today`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -71,12 +71,12 @@ export default function HomeScreen({ navigation }: Props) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
 
     useFocusEffect(
         useCallback(() => {
             fetchTasks();
-        }, [])
+        }, [fetchTasks])
     );
 
     const renderTask = ({ item }: { item: Task }) => {

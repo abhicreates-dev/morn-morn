@@ -37,6 +37,10 @@ model Task {
   proofExplanation  String?
   aiVerdict         Boolean?
 
+  walletAddress     String
+  depositAmount     Float    @default(0.1)
+  solanaTxSignature String   @unique
+
   userId String
   user   User   @relation(fields: [userId], references: [id])
 }

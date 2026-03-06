@@ -6,6 +6,7 @@ import axios from 'axios';
 import { API_URL } from '../config';
 import { useAuth } from '../stores/useAuth';
 import { Feather } from '@expo/vector-icons';
+import { depositToEscrow } from '../solana/commitmentDeposit';
 
 type Props = {
     navigation: StackNavigationProp<RootStackParamList, 'HabitCreation'>;
@@ -20,6 +21,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
     const [aiSuggestion, setAiSuggestion] = useState('');
     const [fetchingAi, setFetchingAi] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [payingDeposit, setPayingDeposit] = useState(false);
 
     const { token } = useAuth();
 
@@ -55,6 +57,27 @@ export default function HabitCreationScreen({ navigation }: Props) {
 
         setCreating(true);
         try {
+            setPayingDeposit(true);
+
+            const solanaConfigRes = await axios.get(`${API_URL}/solana/config`);
+            const { escrowAddress, rpcUrl, depositSol } = solanaConfigRes.data as {
+                escrowAddress: string;
+                rpcUrl: string;
+                depositSol: number;
+            };
+
+            if (depositSol !== 0.1) {
+                Alert.alert("Config Error", "Invalid deposit configuration from server.");
+                return;
+            }
+
+            const { signature, walletAddress } = await depositToEscrow({
+                rpcUrl,
+                escrowAddress,
+            });
+
+            setPayingDeposit(false);
+
             await axios.post(
                 `${API_URL}/tasks`,
                 {
@@ -62,6 +85,8 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     description,
                     completeInHours: hours,
                     aiSuggestion: aiSuggestion || undefined,
+                    solanaTransactionSignature: signature,
+                    walletAddress,
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -69,8 +94,9 @@ export default function HabitCreationScreen({ navigation }: Props) {
             navigation.replace('Motivation');
         } catch (error) {
             console.error(error);
-            Alert.alert("Failed to create task", "Please try again.");
+            Alert.alert("Failed to create task", "Deposit or task creation failed. Please try again.");
         } finally {
+            setPayingDeposit(false);
             setCreating(false);
         }
     };
@@ -181,11 +207,11 @@ export default function HabitCreationScreen({ navigation }: Props) {
             <View className="absolute bottom-8 left-6 right-6">
                 <TouchableOpacity
                     onPress={handleCreate}
-                    disabled={creating}
+                    disabled={creating || payingDeposit}
                     className={`w-full bg-textMain py-5 rounded-full items-center shadow-xl ${creating ? 'opacity-70' : ''}`}
                 >
                     <Text className="text-primary font-bold text-xl uppercase tracking-widest">
-                        {creating ? 'Creating...' : 'Create Habit'}
+                        {payingDeposit ? 'Depositing 0.1 SOL...' : creating ? 'Creating...' : 'Create Habit'}
                     </Text>
                 </TouchableOpacity>
             </View>
