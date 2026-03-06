@@ -33,11 +33,11 @@ export default function AuthScreen({ navigation }: Props) {
 
             console.log("API URL:", `${API_URL}${endpoint}`);
             const response = await fetch(`${API_URL}${endpoint}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
@@ -75,45 +75,51 @@ export default function AuthScreen({ navigation }: Props) {
                 {!isLogin && (
                     <View>
                         <Text className="text-textMain font-medium mb-1 ml-1">Name</Text>
-                        <TextInput
-                            placeholder="Your name"
-                            value={name}
-                            onChangeText={setName}
-                            className="w-full bg-white px-4 py-3 rounded-2xl border border-gray-200 text-textMain"
-                            placeholderTextColor="#a0aec0"
-                        />
+                        <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                            <TextInput
+                                placeholder="Your name"
+                                value={name}
+                                onChangeText={setName}
+                                className="flex-1 text-textMain"
+                                placeholderTextColor="#a0aec0"
+                            />
+                        </View>
                     </View>
                 )}
 
                 <View>
                     <Text className="text-textMain font-medium mb-1 ml-1">Email</Text>
-                    <TextInput
-                        placeholder="you@example.com"
-                        value={email}
-                        onChangeText={setEmail}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        className="w-full bg-white px-4 py-3 rounded-2xl border border-gray-200 text-textMain"
-                        placeholderTextColor="#a0aec0"
-                    />
+                    <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                        <TextInput
+                            placeholder="you@example.com"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            className="flex-1 text-textMain"
+                            placeholderTextColor="#a0aec0"
+                        />
+                    </View>
                 </View>
 
                 <View className="mb-4">
                     <Text className="text-textMain font-medium mb-1 ml-1">Password</Text>
-                    <TextInput
-                        placeholder="••••••••"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        className="w-full bg-white px-4 py-3 rounded-2xl border border-gray-200 text-textMain"
-                        placeholderTextColor="#a0aec0"
-                    />
+                    <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                        <TextInput
+                            placeholder="••••••••"
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                            className="flex-1 text-textMain"
+                            placeholderTextColor="#a0aec0"
+                        />
+                    </View>
                 </View>
 
                 <TouchableOpacity
                     onPress={handleAuth}
                     disabled={loading}
-                    className={`w-full bg-primary py-4 rounded-full items-center shadow-sm ${loading ? 'opacity-70' : ''}`}
+                    className={`w-full bg-primary py-4 rounded-full items-center drop-shadow-none ${loading ? 'opacity-70' : ''}`}
                 >
                     <Text className="text-textMain font-bold text-lg">
                         {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}

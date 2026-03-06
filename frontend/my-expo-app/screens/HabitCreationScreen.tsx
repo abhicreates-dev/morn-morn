@@ -91,61 +91,65 @@ export default function HabitCreationScreen({ navigation }: Props) {
 
                 {/* Form Fields */}
                 <View className="space-y-6">
-                    <View>
-                        <Text className="text-textMain font-bold mb-2 ml-1 text-base">Title</Text>
-                        <TextInput
-                            placeholder="e.g. Read 20 pages"
-                            value={title}
-                            onChangeText={setTitle}
-                            className="w-full bg-white px-5 py-4 rounded-3xl border border-gray-100 shadow-sm text-textMain font-medium text-lg"
-                            placeholderTextColor="#a0aec0"
-                        />
+                    <View className="mb-2">
+                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Title</Text>
+                        <View className="w-full h-[50px] bg-white px-5 rounded-2xl border border-gray-300  drop-shadow-none  justify-center">
+                            <TextInput
+                                placeholder="e.g. Read 20 pages"
+                                value={title}
+                                onChangeText={setTitle}
+                                className="flex-1 text-textMain font-medium text-lg"
+                                placeholderTextColor="#a0aec0"
+                            />
+                        </View>
                     </View>
 
-                    <View>
-                        <Text className="text-textMain font-bold mb-2 ml-1 text-base">Description</Text>
+                    <View className='mb-5'>
+                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Description</Text>
                         <TextInput
                             placeholder="Detailed explanation of the goal..."
                             value={description}
                             onChangeText={setDescription}
                             multiline
                             textAlignVertical="top"
-                            className="w-full h-32 bg-white px-5 py-4 rounded-3xl border border-gray-100 shadow-sm text-textMain font-medium text-base"
+                            className="w-full h-32 bg-white px-5 py-4 rounded-3xl border border-gray-300  drop-shadow-none text-textMain font-medium text-base"
                             placeholderTextColor="#a0aec0"
                         />
                     </View>
 
                     <View>
-                        <Text className="text-textMain font-bold mb-3 ml-1 text-base">Complete In (Hours)</Text>
+                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Complete In (Hours)</Text>
                         <View className="flex-row gap-3">
                             <TouchableOpacity
                                 onPress={() => setHoursMode('24')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '24' ? 'bg-primary border-primary' : 'bg-white border-gray-200 shadow-sm'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '24' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
                             >
                                 <Text className={`font-bold text-lg ${hoursMode === '24' ? 'text-white' : 'text-textMain'}`}>24h</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => setHoursMode('48')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '48' ? 'bg-primary border-primary' : 'bg-white border-gray-200 shadow-sm'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '48' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
                             >
                                 <Text className={`font-bold text-lg ${hoursMode === '48' ? 'text-white' : 'text-textMain'}`}>48h</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => setHoursMode('custom')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === 'custom' ? 'bg-primary border-primary' : 'bg-white border-gray-200 shadow-sm'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === 'custom' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
                             >
                                 <Text className={`font-bold text-lg ${hoursMode === 'custom' ? 'text-white' : 'text-textMain'}`}>Cstm</Text>
                             </TouchableOpacity>
                         </View>
                         {hoursMode === 'custom' && (
-                            <TextInput
-                                placeholder="Enter hours (e.g. 72)"
-                                value={customHours}
-                                onChangeText={setCustomHours}
-                                keyboardType="numeric"
-                                className="w-full mt-3 bg-white px-5 py-4 rounded-3xl border border-gray-100 shadow-sm text-textMain text-center font-bold text-lg"
-                                placeholderTextColor="#a0aec0"
-                            />
+                            <View className="w-full mt-3 h-[60px] bg-white px-5 rounded-3xl border border-gray-100 shadow-sm justify-center">
+                                <TextInput
+                                    placeholder="Enter hours (e.g. 72)"
+                                    value={customHours}
+                                    onChangeText={setCustomHours}
+                                    keyboardType="numeric"
+                                    className="flex-1 text-textMain text-center font-bold text-lg"
+                                    placeholderTextColor="#a0aec0"
+                                />
+                            </View>
                         )}
                     </View>
 
@@ -182,7 +186,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
                 <TouchableOpacity
                     onPress={handleCreate}
                     disabled={creating}
-                    className={`w-full bg-textMain py-5 rounded-full items-center shadow-xl ${creating ? 'opacity-70' : ''}`}
+                    className={`w-full bg-textMain py-5 rounded-full items-center drop-shadow-none ${creating ? 'opacity-70' : ''}`}
                 >
                     <Text className="text-primary font-bold text-xl uppercase tracking-widest">
                         {creating ? 'Creating...' : 'Create Habit'}

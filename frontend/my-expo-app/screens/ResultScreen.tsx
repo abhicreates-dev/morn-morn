@@ -32,7 +32,7 @@ export default function ResultScreen({ navigation, route }: Props) {
 
             <TouchableOpacity
                 onPress={() => navigation.replace('Home')}
-                className={`w-full py-5 rounded-full items-center shadow-xl ${success ? 'bg-textMain' : 'bg-red-500'}`}
+                className={`w-full py-5 rounded-full items-center drop-shadow-none ${success ? 'bg-textMain' : 'bg-red-500'}`}
             >
                 <Text className={`font-bold text-lg tracking-widest ${success ? 'text-primary' : 'text-white'}`}>
                     BACK TO HOME

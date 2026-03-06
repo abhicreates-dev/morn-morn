@@ -83,7 +83,7 @@ export default function HomeScreen({ navigation }: Props) {
         const isActive = !item.challengeStop && !item.completed;
 
         return (
-            <View className="bg-white rounded-3xl p-5 mb-4 shadow-sm border border-gray-100 flex-row items-center">
+            <View className="bg-white rounded-3xl p-5 mb-4 drop-shadow-none border border-gray-300 flex-row items-center">
                 {/* Status Icon */}
                 <View className="mr-4">
                     <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isActive ? 'border-green-500' : 'border-red-500'}`}>
@@ -101,7 +101,7 @@ export default function HomeScreen({ navigation }: Props) {
                 {/* Check Button */}
                 {isActive && (
                     <TouchableOpacity
-                        className="w-12 h-12 bg-gray-50 rounded-full justify-center items-center border border-gray-200"
+                        className="w-12 h-12 bg-gray-50 rounded-full justify-center items-center border border-gray-300 drop-shadow-none"
                         onPress={() => navigation.navigate('Verification', { taskId: item.id })}
                     >
                         <Feather name="check" size={24} color="#fac263" />
@@ -135,7 +135,7 @@ export default function HomeScreen({ navigation }: Props) {
                                 <Text className={`text-sm mb-2 ${isToday ? 'text-primary font-bold' : 'text-textMain/50'}`}>
                                     {date.format('dd')}
                                 </Text>
-                                <View className={`w-12 h-12 rounded-full justify-center items-center ${isToday ? 'bg-white border text-primary border-primary shadow-sm' : ''}`}>
+                                <View className={`w-12 h-12 rounded-full justify-center items-center ${isToday ? 'bg-white border text-primary border-primary drop-shadow-none' : ''}`}>
                                     <Text className={`text-lg ${isToday ? 'text-primary font-bold' : 'text-textMain/80'}`}>
                                         {date.format('DD')}
                                     </Text>
@@ -167,7 +167,7 @@ export default function HomeScreen({ navigation }: Props) {
 
             {/* FAB */}
             <TouchableOpacity
-                className="absolute bottom-8 right-6 w-16 h-16 bg-primary rounded-full justify-center items-center shadow-lg"
+                className="absolute bottom-8 right-6 w-16 h-16 bg-primary rounded-full justify-center items-center drop-shadow-none"
                 onPress={() => navigation.navigate('HabitCreation')}
                 activeOpacity={0.8}
             >
