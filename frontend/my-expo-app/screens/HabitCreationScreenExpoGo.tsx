@@ -86,93 +86,93 @@ export default function HabitCreationScreenExpoGo({ navigation }: Props) {
             <ScrollView className="flex-1 px-6 pt-16 pb-10" showsVerticalScrollIndicator={false}>
                 <View className="flex-row items-center mb-10">
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2 pl-0">
-                        <Feather name="arrow-left" size={28} color="#242424" />
+                        <Feather name="arrow-left" size={28} color="#ffffff" />
                     </TouchableOpacity>
-                    <Text className="text-textMain text-3xl font-bold">New Habit</Text>
+                    <Text className="text-textMain text-3xl font-semibold">New Habit</Text>
                 </View>
 
                 <View className="space-y-6">
                     <View className="mb-2">
-                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Title</Text>
-                        <View className="w-full h-[50px] bg-white px-5 rounded-2xl border border-gray-300  drop-shadow-none  justify-center">
+                        <Text className="text-textMain font-semibold mb-1 ml-1 text-base">Title</Text>
+                        <View className="w-full h-[60px] bg-surface px-4 rounded-2xl border border-surfaceLight justify-center">
                             <TextInput
-                                placeholder="e.g. Read 20 pages"
+                                placeholder="e.g. Morning Run, Reading, Water"
                                 value={title}
                                 onChangeText={setTitle}
-                                className="flex-1 text-textMain font-medium text-lg"
-                                placeholderTextColor="#a0aec0"
+                                className="flex-1 text-textMain text-base font-medium"
+                                placeholderTextColor="#cad2c5"
                             />
                         </View>
                     </View>
 
                     <View className='mb-5'>
-                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Description</Text>
+                        <Text className="text-textMain font-semibold mb-1 ml-1 text-base">Description</Text>
                         <TextInput
                             placeholder="Detailed explanation of the goal..."
                             value={description}
                             onChangeText={setDescription}
                             multiline
                             textAlignVertical="top"
-                            className="w-full h-32 bg-white px-5 py-4 rounded-3xl border border-gray-300  drop-shadow-none text-textMain font-medium text-base"
-                            placeholderTextColor="#a0aec0"
+                            className="w-full h-32 bg-surface px-4 py-3 rounded-2xl border border-surfaceLight text-textMain font-medium text-base"
+                            placeholderTextColor="#cad2c5"
                         />
                     </View>
 
                     <View>
-                        <Text className="text-textMain font-bold mb-1 ml-1 text-base">Complete In (Hours)</Text>
+                        <Text className="text-textMain font-semibold mb-1 ml-1 text-base">Complete In (Hours)</Text>
                         <View className="flex-row gap-3">
                             <TouchableOpacity
                                 onPress={() => setHoursMode('24')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '24' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '24' ? 'bg-primary border-primary' : 'bg-surface border-surfaceLight'}`}
                             >
-                                <Text className={`font-bold text-lg ${hoursMode === '24' ? 'text-white' : 'text-textMain'}`}>24h</Text>
+                                <Text className={`font-semibold text-lg ${hoursMode === '24' ? 'text-background' : 'text-textMain'}`}>24h</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => setHoursMode('48')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '48' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === '48' ? 'bg-primary border-primary' : 'bg-surface border-surfaceLight'}`}
                             >
-                                <Text className={`font-bold text-lg ${hoursMode === '48' ? 'text-white' : 'text-textMain'}`}>48h</Text>
+                                <Text className={`font-semibold text-lg ${hoursMode === '48' ? 'text-background' : 'text-textMain'}`}>48h</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => setHoursMode('custom')}
-                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === 'custom' ? 'bg-primary border-primary' : 'bg-white border-gray-300  drop-shadow-none'}`}
+                                className={`flex-1 py-4 rounded-3xl items-center border ${hoursMode === 'custom' ? 'bg-primary border-primary' : 'bg-surface border-surfaceLight'}`}
                             >
-                                <Text className={`font-bold text-lg ${hoursMode === 'custom' ? 'text-white' : 'text-textMain'}`}>Cstm</Text>
+                                <Text className={`font-semibold text-lg ${hoursMode === 'custom' ? 'text-background' : 'text-textMain'}`}>Cstm</Text>
                             </TouchableOpacity>
                         </View>
                         {hoursMode === 'custom' && (
-                            <View className="w-full mt-3 h-[60px] bg-white px-5 rounded-3xl border border-gray-100 shadow-sm justify-center">
+                            <View className="w-full mt-3 h-[60px] bg-surface px-4 rounded-2xl border border-surfaceLight justify-center">
                                 <TextInput
-                                    placeholder="Enter hours (e.g. 72)"
+                                    placeholder="Enter hours (e.g. 5)"
                                     value={customHours}
                                     onChangeText={setCustomHours}
                                     keyboardType="numeric"
-                                    className="flex-1 text-textMain text-center font-bold text-lg"
-                                    placeholderTextColor="#a0aec0"
+                                    className="flex-1 text-textMain text-center font-semibold text-lg"
+                                    placeholderTextColor="#cad2c5"
                                 />
                             </View>
                         )}
                     </View>
 
-                    <View className="mt-4 p-5 bg-[#faf5ea] rounded-3xl border border-[#f5e6cc]">
+                    <View className="mt-4 p-5 bg-surface rounded-3xl border border-surfaceLight">
                         <View className="flex-row items-center justify-between mb-3">
                             <View className="flex-row items-center gap-2">
                                 <Text className="text-1xl">✨</Text>
-                                <Text className="text-primary font-bold text-base">AI Suggestion</Text>
+                                <Text className="text-primary font-semibold text-base">AI Suggestion</Text>
                             </View>
                             {!aiSuggestion && !fetchingAi && (
                                 <TouchableOpacity onPress={getMockAiSuggestion} className="bg-primary/20 px-3 py-1 rounded-full">
-                                    <Text className="text-primary font-bold text-xs">Generate</Text>
+                                    <Text className="text-primary font-semibold text-xs">Generate</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
 
                         {fetchingAi ? (
-                            <ActivityIndicator size="small" color="#fac263" className="my-2" />
+                            <ActivityIndicator size="small" color="#84a98c" className="my-2" />
                         ) : aiSuggestion ? (
-                            <Text className="text-textMain/80 leading-5 italic">{aiSuggestion}</Text>
+                            <Text className="text-textMuted leading-5 italic">{aiSuggestion}</Text>
                         ) : (
-                            <Text className="text-textMain/40 text-sm">Write a title and description to get feedback.</Text>
+                            <Text className="text-textMuted text-sm">Write a title and description to get feedback.</Text>
                         )}
                     </View>
                 </View>
@@ -181,7 +181,7 @@ export default function HabitCreationScreenExpoGo({ navigation }: Props) {
             </ScrollView>
 
             <View className="absolute bottom-24 left-6 right-6 items-center">
-                <Text className="text-textMain/50 text-xs text-center">
+                <Text className="text-textMuted text-xs text-center">
                     Running in Expo Go — no SOL staking. Use a dev build to stake 0.01 SOL.
                 </Text>
             </View>
@@ -190,9 +190,9 @@ export default function HabitCreationScreenExpoGo({ navigation }: Props) {
                 <TouchableOpacity
                     onPress={handleCreate}
                     disabled={creating}
-                    className={`w-full bg-textMain py-5 rounded-full items-center drop-shadow-none ${creating ? 'opacity-70' : ''}`}
+                    className={`w-full bg-primary py-5 rounded-full items-center drop-shadow-none ${creating ? 'opacity-70' : ''}`}
                 >
-                    <Text className="text-primary font-bold text-xl uppercase tracking-widest">
+                    <Text className="text-background font-bold text-xl uppercase tracking-widest">
                         {creating ? 'Creating...' : 'Create Habit'}
                     </Text>
                 </TouchableOpacity>

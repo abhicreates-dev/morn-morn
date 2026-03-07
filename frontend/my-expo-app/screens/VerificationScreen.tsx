@@ -64,10 +64,10 @@ export default function VerificationScreen({ navigation, route }: Props) {
             <ScrollView className="flex-1 px-6 pt-16 pb-10" showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View className="flex-row items-center mb-8">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 py-2 pr-4">
-                        <Feather name="arrow-left" size={28} color="#242424" />
+                    <TouchableOpacity className="mt-4" onPress={() => navigation.goBack()}>
+                        <Feather name="arrow-left" size={24} color="#ffffff" />
                     </TouchableOpacity>
-                    <Text className="text-textMain text-3xl font-bold">Verify Task</Text>
+                    <Text className="text-textMain text-3xl font-semibold">Verify Task</Text>
                 </View>
 
                 <Text className="text-textMain/70 text-base mb-6 leading-relaxed">
@@ -78,38 +78,38 @@ export default function VerificationScreen({ navigation, route }: Props) {
                 <View className="flex-row gap-4 mb-8">
                     <TouchableOpacity
                         onPress={() => setProofType('photo')}
-                        className={`flex-1 py-4 rounded-3xl items-center border ${proofType === 'photo' ? 'bg-primary border-primary' : 'bg-white border-gray-300 drop-shadow-none'}`}
+                        className={`flex-1 py-4 rounded-3xl items-center border ${proofType === 'photo' ? 'bg-primary border-primary' : 'bg-surface border-surfaceLight drop-shadow-none'}`}
                     >
-                        <Feather name="camera" size={24} color={proofType === 'photo' ? '#fff' : '#242424'} />
-                        <Text className={`font-bold mt-2 ${proofType === 'photo' ? 'text-white' : 'text-textMain'}`}>Photo</Text>
+                        <Feather name="camera" size={24} color={proofType === 'photo' ? '#2f3e46' : '#ffffff'} />
+                        <Text className={`font-semibold mt-2 ${proofType === 'photo' ? 'text-background' : 'text-textMain'}`}>Photo</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => setProofType('text')}
-                        className={`flex-1 py-4 rounded-3xl items-center border ${proofType === 'text' ? 'bg-primary border-primary' : 'bg-white border-gray-300 drop-shadow-none'}`}
+                        className={`flex-1 py-4 rounded-3xl items-center border ${proofType === 'text' ? 'bg-primary border-primary' : 'bg-surface border-surfaceLight drop-shadow-none'}`}
                     >
-                        <Feather name="file-text" size={24} color={proofType === 'text' ? '#fff' : '#242424'} />
-                        <Text className={`font-bold mt-2 ${proofType === 'text' ? 'text-white' : 'text-textMain'}`}>Explain</Text>
+                        <Feather name="file-text" size={24} color={proofType === 'text' ? '#2f3e46' : '#ffffff'} />
+                        <Text className={`font-semibold mt-2 ${proofType === 'text' ? 'text-background' : 'text-textMain'}`}>Explain</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Proof Entry Area */}
                 {proofType === 'photo' ? (
-                    <View className="h-48 bg-white border border-gray-300 drop-shadow-none rounded-3xl justify-center items-center border-dashed">
-                        <Feather name="upload-cloud" size={40} color="#fac263" className="mb-4" />
-                        <Text className="text-textMain/50 font-medium">Tap to upload a screenshot</Text>
-                        <Text className="text-textMain/40 text-xs mt-2">(Mocked for now)</Text>
+                    <View className="h-48 bg-surface border border-surfaceLight drop-shadow-none rounded-3xl justify-center items-center border-dashed">
+                        <Feather name="upload-cloud" size={40} color="#84a98c" className="mb-4" />
+                        <Text className="text-textMuted font-medium">Tap to upload a screenshot</Text>
+                        <Text className="text-textMuted text-xs mt-2">(Mocked for now)</Text>
                     </View>
                 ) : (
                     <View>
-                        <Text className="text-textMain font-bold mb-2 ml-1 text-base">Explanation</Text>
+                        <Text className="text-textMain font-semibold mb-2 ml-1 text-base">Explanation</Text>
                         <TextInput
                             placeholder="How did you complete it? (Type 'fail' to mock failure)"
                             value={explanation}
                             onChangeText={setExplanation}
                             multiline
                             textAlignVertical="top"
-                            className="w-full h-48 bg-white px-5 py-4 rounded-3xl border border-gray-300 drop-shadow-none text-textMain font-medium text-base"
-                            placeholderTextColor="#a0aec0"
+                            className="w-full h-48 bg-surface px-5 py-4 rounded-3xl border border-surfaceLight drop-shadow-none text-textMain font-medium text-base"
+                            placeholderTextColor="#cad2c5"
                         />
                     </View>
                 )}
@@ -121,10 +121,10 @@ export default function VerificationScreen({ navigation, route }: Props) {
                 <TouchableOpacity
                     onPress={handleVerify}
                     disabled={verifying}
-                    className={`w-full bg-textMain py-5 rounded-full items-center drop-shadow-none flex-row justify-center ${verifying ? 'opacity-80' : ''}`}
+                    className={`w-full bg-primary py-5 rounded-full items-center drop-shadow-none flex-row justify-center ${verifying ? 'opacity-80' : ''}`}
                 >
-                    {verifying && <ActivityIndicator size="small" color="#fac263" className="mr-3" />}
-                    <Text className="text-primary font-bold text-xl uppercase tracking-widest">
+                    {verifying && <ActivityIndicator size="small" color="#2f3e46" className="mr-3" />}
+                    <Text className="text-background font-bold text-xl uppercase tracking-widest">
                         {verifying ? 'AI Analyzing...' : 'Submit Proof'}
                     </Text>
                 </TouchableOpacity>

@@ -42,7 +42,7 @@ export default function App() {
             initialRouteName="Onboarding"
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: '#faf7f1' },
+              contentStyle: { backgroundColor: '#2f3e46' },
             }}
           >
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
@@ -55,7 +55,7 @@ export default function App() {
           </Stack.Navigator>
         </Suspense>
       </NavigationContainer>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }

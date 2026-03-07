@@ -66,33 +66,33 @@ export default function OnboardingScreen({ navigation }: Props) {
         <GestureHandlerRootView style={styles.container}>
             <View className="flex-1 bg-background justify-center items-center px-6">
                 {/* Placeholder for vector art */}
-                <View className="w-48 h-48 bg-primary/20 rounded-full items-center justify-center mb-12">
+                <View className="w-48 h-48 bg-surface rounded-full items-center justify-center mb-12 border border-surfaceLight">
                     <Text className="text-primary text-6xl">✨</Text>
                 </View>
 
-                <Text className="text-textMain text-3xl font-bold mb-6 text-center">
+                <Text className="text-textMain text-3xl font-semibold mb-6 text-center">
                     I make a promise to myself.
                 </Text>
 
-                <Text className="text-textMain text-lg text-center mb-2 leading-relaxed opacity-80">
+                <Text className="text-textMuted text-lg text-center mb-2 leading-relaxed">
                     I will not lie to myself.
                 </Text>
-                <Text className="text-textMain text-lg text-center mb-16 leading-relaxed opacity-80">
+                <Text className="text-textMuted text-lg text-center mb-16 leading-relaxed">
                     I will become better every day.
                 </Text>
 
                 <GestureDetector gesture={longPressGesture}>
-                    <View className="w-full max-w-xs h-16 bg-gray-200 rounded-full overflow-hidden justify-center relative active:opacity-90">
+                    <View className="w-full max-w-xs h-16 bg-surfaceLight rounded-full overflow-hidden justify-center relative active:opacity-90">
                         <Animated.View
                             className="absolute left-0 top-0 bottom-0 bg-primary"
                             style={animatedStyle}
                         />
-                        <Text className="text-textMain text-center font-bold text-lg z-10">
+                        <Text className="text-textMain text-center font-semibold text-lg z-10">
                             {isHolding ? "Keep holding..." : "Hold to Accept"}
                         </Text>
                     </View>
                 </GestureDetector>
-                <Text className="text-textMain/50 text-sm mt-4">Hold for 2 seconds</Text>
+                <Text className="text-textMuted text-sm mt-4">Hold for 2 seconds</Text>
             </View>
         </GestureHandlerRootView>
     );

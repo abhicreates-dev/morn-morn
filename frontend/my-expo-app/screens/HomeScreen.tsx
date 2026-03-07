@@ -35,9 +35,10 @@ const CountdownTimer = memo(({ deadline }: { deadline: string }) => {
             const diffInfoSeconds = end.diff(now, 'second') % 60;
 
             if (end.isBefore(now)) {
-                setTimeLeft('00h 00m left');
+                setTimeLeft('00:00:00');
             } else {
-                setTimeLeft(`${diffInfoHours}h ${diffInfoMinutes}m ${diffInfoSeconds}s left`);
+                const pad = (n: number) => n.toString().padStart(2, '0');
+                setTimeLeft(`${pad(diffInfoHours)}:${pad(diffInfoMinutes)}:${pad(diffInfoSeconds)}`);
             }
         };
 
@@ -46,15 +47,21 @@ const CountdownTimer = memo(({ deadline }: { deadline: string }) => {
         return () => clearInterval(interval);
     }, [deadline]);
 
-    return <Text className="text-textMain/60 mt-2 font-medium">{timeLeft}</Text>;
+    return <Text className="text-textMain/80 font-medium text-xl tracking-widest">{timeLeft}</Text>;
 });
 
 export default function HomeScreen({ navigation }: Props) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
-    const { token, logout } = useAuth();
+    const { token, logout, user } = useAuth();
 
-    const currentMonthYear = dayjs().format('MMMM YYYY');
+    const getOrdinalNum = (n: number) => {
+        return n + (n > 0 ? ['th', 'st', 'nd', 'rd'][(n > 3 && n < 21) || n % 10 > 3 ? 0 : n % 10] : '');
+    };
+
+    const firstName = user?.name ? user.name.split(' ')[0] : '';
+    const dayVar = dayjs().date();
+    const formattedDate = `${getOrdinalNum(dayVar)} ${dayjs().format('MMMM')}`;
 
     // Generate dates for current week
     const dates = Array.from({ length: 14 }).map((_, i) => dayjs().subtract(7, 'day').add(i, 'day'));
@@ -91,32 +98,58 @@ export default function HomeScreen({ navigation }: Props) {
 
     const renderTask = ({ item }: { item: Task }) => {
         const isActive = !item.challengeStop && !item.completed;
+        const isFailed = item.challengeStop && !item.completed;
+        const isSuccess = item.completed;
+
+        let backLayerClass = 'bg-surfaceLight/80';
+        if (isSuccess) backLayerClass = 'bg-primary/80';
+        else if (isFailed) backLayerClass = 'bg-red-500/80';
 
         return (
-            <View className="bg-white rounded-3xl p-5 mb-4 drop-shadow-none border border-gray-300 flex-row items-center">
-                {/* Status Icon */}
-                <View className="mr-4">
-                    <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isActive ? 'border-green-500' : 'border-red-500'}`}>
-                        <View className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-500'} ${isActive ? 'shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`} />
+            <View className="mb-6 pl-1 pb-2">
+                <View className="relative">
+                    {/* Background layer */}
+                    <View className={`absolute top-0 -left-1 right-0 h-full rounded-2xl ${backLayerClass}`} />
+
+                    {/* Main Foreground Card */}
+                    <View className="bg-surface rounded-2xl py-4 px-5 relative z-10 w-full ml-0 border border-surfaceLight/30">
+                        {/* Header Row */}
+                        <View className="flex-row justify-between items-start mb-1 mt-1">
+                            <Text className="text-textMain font-medium tracking-tight text-[18px] flex-1 mr-4 leading-tight" numberOfLines={1}>
+                                {item.title}
+                            </Text>
+                            <Feather name="arrow-up-right" size={20} color="#cad2c5" />
+                        </View>
+
+                        {/* Description (approx 60% width) */}
+                        <View className="w-[65%] mb-2">
+                            <Text className="text-textMuted text-base leading-snug" numberOfLines={1}>
+                                {item.description}
+                            </Text>
+                        </View>
+
+                        {/* Footer Row */}
+                        <View className="flex-row justify-between items-end mt-1">
+                            <View className="flex-1 justify-end">
+                                <CountdownTimer deadline={item.deadlineTimestamp} />
+                            </View>
+
+                            {/* Action Button */}
+                            <TouchableOpacity
+                                disabled={!isActive}
+                                className={`px-5 py-2 rounded-2xl border flex-row items-center ml-4 ${isActive ? 'border-surfaceLight bg-surface' : 'border-surfaceLight/50 bg-background/50 opacity-60'}`}
+                                onPress={() => navigation.navigate('Verification', { taskId: item.id })}
+                            >
+                                <Text className="text-textMain font-medium mr-2 text-base w-20 text-center">
+                                    {isSuccess ? 'Done' : 'Complete'}
+                                </Text>
+                                <View className="ml-1 justify-center items-center">
+                                    <Feather name="arrow-up-right" size={18} color="#cad2c5" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-
-                {/* Content */}
-                <View className="flex-1 mr-2">
-                    <Text className="text-textMain font-bold text-lg" numberOfLines={1}>{item.title}</Text>
-                    <Text className="text-textMain/70 text-sm mt-1" numberOfLines={1}>{item.description}</Text>
-                    <CountdownTimer deadline={item.deadlineTimestamp} />
-                </View>
-
-                {/* Check Button */}
-                {isActive && (
-                    <TouchableOpacity
-                        className="w-12 h-12 bg-gray-50 rounded-full justify-center items-center border border-gray-300 drop-shadow-none"
-                        onPress={() => navigation.navigate('Verification', { taskId: item.id })}
-                    >
-                        <Feather name="check" size={24} color="#fac263" />
-                    </TouchableOpacity>
-                )}
             </View>
         );
     };
@@ -124,10 +157,13 @@ export default function HomeScreen({ navigation }: Props) {
     return (
         <View className="flex-1 bg-background pt-14 pb-4">
             {/* Header */}
-            <View className="px-6 mb-6 flex-row justify-between items-center">
-                <Text className="text-textMain font-bold text-2xl uppercase tracking-widest">{currentMonthYear}</Text>
-                <TouchableOpacity onPress={() => logout()}>
-                    <Feather name="log-out" size={20} color="#242424" style={{ opacity: 0.5 }} />
+            <View className="px-6 mb-6 flex-row justify-between items-start mt-2">
+                <View>
+                    <Text className="text-textMain font-semibold text-2xl tracking-tight leading-tight mb-1">Welcome, {firstName}</Text>
+                    <Text className="text-textMuted font-medium">{formattedDate} 2026</Text>
+                </View>
+                <TouchableOpacity onPress={() => logout()} className="mt-1">
+                    <Feather name="log-out" size={20} color="#cad2c5" />
                 </TouchableOpacity>
             </View>
 
@@ -142,11 +178,11 @@ export default function HomeScreen({ navigation }: Props) {
                         const isToday = date.format('YYYY-MM-DD') === currentDayStr;
                         return (
                             <View key={idx} className="items-center">
-                                <Text className={`text-sm mb-2 ${isToday ? 'text-primary font-bold' : 'text-textMain/50'}`}>
+                                <Text className={`text-sm mb-2 ${isToday ? 'text-textMain font-semibold' : 'text-textMuted'}`}>
                                     {date.format('dd')}
                                 </Text>
-                                <View className={`w-12 h-12 rounded-full justify-center items-center ${isToday ? 'bg-white border text-primary border-primary drop-shadow-none' : ''}`}>
-                                    <Text className={`text-lg ${isToday ? 'text-primary font-bold' : 'text-textMain/80'}`}>
+                                <View className={`w-12 h-12  rounded-md justify-center items-center ${isToday ? 'bg-primary drop-shadow-none' : 'bg-surface'}`}>
+                                    <Text className={`text-lg ${isToday ? 'text-background font-semibold' : 'text-textMuted font-medium'}`}>
                                         {date.format('DD')}
                                     </Text>
                                 </View>
@@ -159,10 +195,10 @@ export default function HomeScreen({ navigation }: Props) {
             {/* Task List */}
             <View className="flex-1 px-6">
                 {loading ? (
-                    <ActivityIndicator size="large" color="#fac263" className="mt-10" />
+                    <ActivityIndicator size="large" color="#84a98c" className="mt-10" />
                 ) : tasks.length === 0 ? (
                     <View className="flex-1 justify-center items-center opacity-50">
-                        <Text className="text-textMain text-lg text-center">No tasks for today. {"\n"}Create one!</Text>
+                        <Text className="text-textMuted text-lg text-center">No tasks for today. {"\n"}Create one!</Text>
                     </View>
                 ) : (
                     <FlatList
@@ -181,7 +217,7 @@ export default function HomeScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('HabitCreation')}
                 activeOpacity={0.8}
             >
-                <Feather name="plus" size={32} color="#fff" />
+                <Feather name="plus" size={32} color="#2f3e46" />
             </TouchableOpacity>
         </View>
     );

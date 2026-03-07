@@ -6,9 +6,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#faf7f1',
-        primary: '#fac263',
-        textMain: '#242424',
+        background: '#2f3e46',
+        surface: '#354f52',
+        surfaceLight: '#52796f',
+        primary: '#84a98c',
+        textMuted: '#cad2c5',
+        textMain: '#ffffff',
       }
     },
   },

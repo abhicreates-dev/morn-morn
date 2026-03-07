@@ -62,10 +62,10 @@ export default function AuthScreen({ navigation }: Props) {
             className="flex-1 bg-background justify-center px-8"
         >
             <View className="items-center mb-10">
-                <View className="w-20 h-20 bg-primary/20 rounded-full justify-center items-center mb-4">
-                    <Text className="text-primary text-3xl">☀️</Text>
+                <View className="mb-10 items-center">
+                    <Text className="text-primary font-black text-5xl italic tracking-tighter mb-2">morn morn</Text>
+                    <Text className="text-textMuted text-center font-medium">Build consistency. Win your mornings.</Text>
                 </View>
-                <Text className="text-textMain text-4xl font-bold">Morn Morn</Text>
                 <Text className="text-textMain/70 text-lg mt-2">
                     {isLogin ? 'Welcome back, disciplined.' : 'Start your journey.'}
                 </Text>
@@ -75,13 +75,13 @@ export default function AuthScreen({ navigation }: Props) {
                 {!isLogin && (
                     <View className='mb-2'>
                         <Text className="text-textMain font-medium mb-1 ml-1">Name</Text>
-                        <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                        <View className="w-full h-[52px] bg-surface px-4 rounded-2xl border border-surfaceLight drop-shadow-none justify-center">
                             <TextInput
                                 placeholder="Your name"
+                                placeholderTextColor="#cad2c5"
                                 value={name}
                                 onChangeText={setName}
-                                className="flex-1 text-textMain"
-                                placeholderTextColor="#a0aec0"
+                                className="flex-1 text-textMain text-base font-medium"
                             />
                         </View>
                     </View>
@@ -89,29 +89,29 @@ export default function AuthScreen({ navigation }: Props) {
 
                 <View className='mb-2'>
                     <Text className="text-textMain font-medium mb-1 ml-1">Email</Text>
-                    <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                    <View className="w-full h-[52px] bg-surface px-4 rounded-2xl border border-surfaceLight drop-shadow-none justify-center">
                         <TextInput
                             placeholder="you@example.com"
+                            placeholderTextColor="#cad2c5"
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
-                            className="flex-1 text-textMain"
-                            placeholderTextColor="#a0aec0"
+                            className="flex-1 text-textMain text-base font-medium"
                         />
                     </View>
                 </View>
 
                 <View className="mb-2">
                     <Text className="text-textMain font-medium mb-1 ml-1">Password</Text>
-                    <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
+                    <View className="w-full h-[52px] bg-surface px-4 rounded-2xl border border-surfaceLight drop-shadow-none justify-center">
                         <TextInput
                             placeholder="••••••••"
+                            placeholderTextColor="#cad2c5"
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry
-                            className="flex-1 text-textMain"
-                            placeholderTextColor="#a0aec0"
+                            className="flex-1 text-textMain text-base font-medium"
                         />
                     </View>
                 </View>
@@ -119,9 +119,9 @@ export default function AuthScreen({ navigation }: Props) {
                 <TouchableOpacity
                     onPress={handleAuth}
                     disabled={loading}
-                    className={`w-full bg-primary py-4 rounded-full items-center drop-shadow-none ${loading ? 'opacity-70' : ''}`}
+                    className={`w-full bg-primary py-4 rounded-full items-center drop-shadow-none mt-4 ${loading ? 'opacity-70' : ''}`}
                 >
-                    <Text className="text-textMain font-bold text-lg">
+                    <Text className="text-background font-bold text-lg">
                         {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
                     </Text>
                 </TouchableOpacity>
@@ -132,7 +132,7 @@ export default function AuthScreen({ navigation }: Props) {
                     {isLogin ? "Don't have an account? " : "Already have an account? "}
                 </Text>
                 <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-                    <Text className="text-primary font-bold">
+                    <Text className="text-primary font-semibold">
                         {isLogin ? "Sign Up" : "Sign In"}
                     </Text>
                 </TouchableOpacity>
