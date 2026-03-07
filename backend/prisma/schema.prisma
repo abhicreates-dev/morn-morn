@@ -24,18 +24,21 @@ model User {
 }
 
 model Task {
-  id                String   @id @default(uuid())
-  title             String
-  description       String
-  completeInHours   Int
-  aiSuggestion      String?
-  dateCreated       DateTime @default(now())
-  deadlineTimestamp DateTime
-  challengeStop     Boolean  @default(false)
-  completed         Boolean  @default(false)
-  proofImageUrl     String?
-  proofExplanation  String?
-  aiVerdict         Boolean?
+  id                  String    @id @default(uuid())
+  title               String
+  description         String
+  completeInHours     Int
+  aiSuggestion        String?
+  dateCreated         DateTime  @default(now())
+  deadlineTimestamp   DateTime
+  challengeStop       Boolean   @default(false)
+  completed           Boolean   @default(false)
+  proofImageUrl       String?
+  proofExplanation    String?
+  aiVerdict           Boolean?
+  userWalletAddress   String?
+  stakeAmountLamports String?
+  stakeReceivedAt     DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

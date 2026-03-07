@@ -73,7 +73,7 @@ export default function AuthScreen({ navigation }: Props) {
 
             <View className="space-y-4">
                 {!isLogin && (
-                    <View>
+                    <View className='mb-2'>
                         <Text className="text-textMain font-medium mb-1 ml-1">Name</Text>
                         <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
                             <TextInput
@@ -87,7 +87,7 @@ export default function AuthScreen({ navigation }: Props) {
                     </View>
                 )}
 
-                <View>
+                <View className='mb-2'>
                     <Text className="text-textMain font-medium mb-1 ml-1">Email</Text>
                     <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
                         <TextInput
@@ -102,7 +102,7 @@ export default function AuthScreen({ navigation }: Props) {
                     </View>
                 </View>
 
-                <View className="mb-4">
+                <View className="mb-2">
                     <Text className="text-textMain font-medium mb-1 ml-1">Password</Text>
                     <View className="w-full h-[52px] bg-white px-4 rounded-2xl border border-gray-300 drop-shadow-none justify-center">
                         <TextInput

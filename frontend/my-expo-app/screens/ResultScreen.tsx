@@ -26,9 +26,15 @@ export default function ResultScreen({ navigation, route }: Props) {
                 {success ? 'WELL DONE' : 'CHALLENGE FAILED'}
             </Text>
 
-            <Text className="text-textMain/80 font-bold text-xl tracking-widest text-center mb-16">
+            <Text className="text-textMain/80 font-bold text-xl tracking-widest text-center mb-4">
                 {success ? 'YOU DID IT' : 'You ran out of time.\nStart again tomorrow.'}
             </Text>
+
+            {success && (
+                <Text className="text-textMain/70 text-base text-center mb-16 px-4">
+                    Your 0.01 SOL has been returned to your wallet.
+                </Text>
+            )}
 
             <TouchableOpacity
                 onPress={() => navigation.replace('Home')}

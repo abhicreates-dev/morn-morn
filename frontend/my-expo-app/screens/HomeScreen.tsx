@@ -60,23 +60,33 @@ export default function HomeScreen({ navigation }: Props) {
     const dates = Array.from({ length: 14 }).map((_, i) => dayjs().subtract(7, 'day').add(i, 'day'));
     const currentDayStr = dayjs().format('YYYY-MM-DD');
 
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
         try {
             const res = await axios.get(`${API_URL}/tasks/today`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTasks(res.data);
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
+        } catch (error: any) {
+            if (error?.response?.status === 401) {
+                logout();
+                navigation.replace('Auth');
+            } else {
+                console.error('Error fetching tasks:', error);
+                setTasks([]);
+            }
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, logout, navigation]);
 
     useFocusEffect(
         useCallback(() => {
             fetchTasks();
-        }, [])
+        }, [fetchTasks])
     );
 
     const renderTask = ({ item }: { item: Task }) => {

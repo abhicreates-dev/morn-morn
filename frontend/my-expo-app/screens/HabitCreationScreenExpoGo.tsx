@@ -5,16 +5,17 @@ import { RootStackParamList } from '../App';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { useAuth } from '../stores/useAuth';
-import { useWallet } from '../hooks/useWallet';
 import { Feather } from '@expo/vector-icons';
-
-const STAKE_SOL = 0.01;
 
 type Props = {
     navigation: StackNavigationProp<RootStackParamList, 'HabitCreation'>;
 };
 
-export default function HabitCreationScreen({ navigation }: Props) {
+/**
+ * Expo Go version: no wallet/MWA. Creates task without staking.
+ * Use a development build to stake 0.01 SOL.
+ */
+export default function HabitCreationScreenExpoGo({ navigation }: Props) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [hoursMode, setHoursMode] = useState<'24' | '48' | 'custom'>('24');
@@ -25,7 +26,6 @@ export default function HabitCreationScreen({ navigation }: Props) {
     const [creating, setCreating] = useState(false);
 
     const { token } = useAuth();
-    const wallet = useWallet();
 
     const getHours = (): number => {
         if (hoursMode === '24') return 24;
@@ -39,7 +39,6 @@ export default function HabitCreationScreen({ navigation }: Props) {
             return;
         }
         setFetchingAi(true);
-        // Simulate AI delay
         setTimeout(() => {
             setAiSuggestion("Try making this goal more measurable. For example, specify an exact metric to meet.");
             setFetchingAi(false);
@@ -57,60 +56,23 @@ export default function HabitCreationScreen({ navigation }: Props) {
             return;
         }
 
-        let pubkey = wallet.publicKey;
-        if (!pubkey) {
-            try {
-                pubkey = await wallet.connect();
-            } catch (e) {
-                Alert.alert("Wallet required", "Connect your Phantom wallet to stake 0.01 SOL and create this habit.");
-                return;
-            }
-        }
-        if (!pubkey) return;
-
         setCreating(true);
         try {
-            const createRes = await axios.post(
+            await axios.post(
                 `${API_URL}/tasks`,
                 {
                     title,
                     description,
                     completeInHours: hours,
                     aiSuggestion: aiSuggestion || undefined,
-                    userWalletAddress: pubkey.toBase58(),
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            const task = createRes.data;
-            const { escrowAddress, stakeAmountLamports } = task;
-            const amountSOL = Number(stakeAmountLamports) / 1e9;
-
-            const txSignature = await wallet.stakeSOL(escrowAddress, amountSOL, task.id, pubkey);
-
-            await axios.post(
-                `${API_URL}/tasks/${task.id}/confirm-stake`,
-                { txSignature },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
             navigation.replace('Motivation');
         } catch (error: any) {
             console.error(error);
-            const errMsg = String(error?.message ?? error?.toString?.() ?? "");
-            const isCancelled =
-                errMsg.includes("CancellationException") ||
-                /cancell?ed/i.test(errMsg) ||
-                (error?.name === "SolanaMobileWalletAdapterError" && /cancell?/i.test(errMsg));
-            if (isCancelled) {
-                Alert.alert(
-                    "Wallet step cancelled",
-                    "You cancelled the connection or signing. Try again when you're ready to stake 0.01 SOL."
-                );
-            } else {
-                const msg = error?.response?.data?.message || error?.message || "Please try again.";
-                Alert.alert("Failed to create task", msg);
-            }
+            const msg = error?.response?.data?.message || error?.message || "Please try again.";
+            Alert.alert("Failed to create task", msg);
         } finally {
             setCreating(false);
         }
@@ -122,7 +84,6 @@ export default function HabitCreationScreen({ navigation }: Props) {
             className="flex-1 bg-background"
         >
             <ScrollView className="flex-1 px-6 pt-16 pb-10" showsVerticalScrollIndicator={false}>
-                {/* Header */}
                 <View className="flex-row items-center mb-10">
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2 pl-0">
                         <Feather name="arrow-left" size={28} color="#242424" />
@@ -130,7 +91,6 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     <Text className="text-textMain text-3xl font-bold">New Habit</Text>
                 </View>
 
-                {/* Form Fields */}
                 <View className="space-y-6">
                     <View className="mb-2">
                         <Text className="text-textMain font-bold mb-1 ml-1 text-base">Title</Text>
@@ -194,7 +154,6 @@ export default function HabitCreationScreen({ navigation }: Props) {
                         )}
                     </View>
 
-                    {/* AI Suggestion Box */}
                     <View className="mt-4 p-5 bg-[#faf5ea] rounded-3xl border border-[#f5e6cc]">
                         <View className="flex-row items-center justify-between mb-3">
                             <View className="flex-row items-center gap-2">
@@ -218,32 +177,23 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     </View>
                 </View>
 
-                {/* Spacing for bottom button */}
                 <View className="h-32" />
             </ScrollView>
 
-            {/* Stake info */}
             <View className="absolute bottom-24 left-6 right-6 items-center">
-                <Text className="text-textMain/60 text-sm">
-                    Stakes 0.01 SOL — returned when you complete the task
+                <Text className="text-textMain/50 text-xs text-center">
+                    Running in Expo Go — no SOL staking. Use a dev build to stake 0.01 SOL.
                 </Text>
             </View>
 
-            {/* Floating Create Button */}
             <View className="absolute bottom-8 left-6 right-6">
                 <TouchableOpacity
                     onPress={handleCreate}
-                    disabled={creating || wallet.connecting || wallet.sending}
-                    className={`w-full bg-textMain py-5 rounded-full items-center drop-shadow-none ${creating || wallet.connecting || wallet.sending ? 'opacity-70' : ''}`}
+                    disabled={creating}
+                    className={`w-full bg-textMain py-5 rounded-full items-center drop-shadow-none ${creating ? 'opacity-70' : ''}`}
                 >
                     <Text className="text-primary font-bold text-xl uppercase tracking-widest">
-                        {wallet.connecting
-                            ? 'Connecting...'
-                            : wallet.sending
-                              ? 'Confirm in Phantom...'
-                              : creating
-                                ? 'Creating...'
-                                : 'Stake 0.01 SOL & Create Habit'}
+                        {creating ? 'Creating...' : 'Create Habit'}
                     </Text>
                 </TouchableOpacity>
             </View>
