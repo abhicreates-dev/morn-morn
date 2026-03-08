@@ -86,7 +86,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                 {/* Breathing space: looping background video (slightly larger area) */}
                 <View style={styles.videoArea}>
                     <Video
-                        source={require('../assets/onboarding.mp4')}
+                        source={require('../assets/Color Matte_4.mp4')}
                         style={StyleSheet.absoluteFill}
                         resizeMode={ResizeMode.COVER}
                         shouldPlay
@@ -176,9 +176,6 @@ const styles = StyleSheet.create({
         paddingVertical: 32,
         paddingHorizontal: 28,
         borderRadius: 72,
-        backgroundColor: '#354f52',
-        borderWidth: 0.5,
-        borderColor: '#52796f',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 28,

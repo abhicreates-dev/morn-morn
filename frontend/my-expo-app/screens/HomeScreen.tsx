@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import { Feather } from '@expo/vector-icons';
@@ -63,9 +63,19 @@ export default function HomeScreen({ navigation }: Props) {
     const dayVar = dayjs().date();
     const formattedDate = `${getOrdinalNum(dayVar)} ${dayjs().format('MMMM')}`;
 
-    // Generate dates for current week
-    const dates = Array.from({ length: 14 }).map((_, i) => dayjs().subtract(7, 'day').add(i, 'day'));
+    // Past 7 days + today + next 13 days (scroll left for old dates, today visible by default)
+    const dates = Array.from({ length: 21 }).map((_, i) => dayjs().subtract(7, 'day').add(i, 'day'));
     const currentDayStr = dayjs().format('YYYY-MM-DD');
+    const calendarRef = useRef<ScrollView>(null);
+    const DATE_ITEM_WIDTH = 48 + 12; // w-12 + gap
+    const TODAY_INDEX = 7;
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            calendarRef.current?.scrollTo({ x: TODAY_INDEX * DATE_ITEM_WIDTH, animated: false });
+        }, 100);
+        return () => clearTimeout(t);
+    }, []);
 
     const fetchTasks = useCallback(async () => {
         if (!token) {
@@ -170,6 +180,7 @@ export default function HomeScreen({ navigation }: Props) {
             {/* Calendar Strip */}
             <View className="mb-6">
                 <ScrollView
+                    ref={calendarRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
