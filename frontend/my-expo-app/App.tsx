@@ -27,7 +27,7 @@ export type RootStackParamList = {
   Home: undefined;
   HabitCreation: undefined;
   Motivation: undefined;
-  Verification: { taskId: string };
+  Verification: { taskId: string; taskTitle?: string; taskDescription?: string };
   Result: { success: boolean };
 };
 

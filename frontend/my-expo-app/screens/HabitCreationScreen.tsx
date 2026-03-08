@@ -7,8 +7,10 @@ import { API_URL } from '../config';
 import { useAuth } from '../stores/useAuth';
 import { useWallet } from '../hooks/useWallet';
 import { Feather } from '@expo/vector-icons';
+import { normalizeApiKey, requestGeminiSuggestion } from '../lib/gemini';
 
 const STAKE_SOL = 0.01;
+const SEEKER_DECIMALS = 6; // Seeker (SKR) token decimals
 const hoursOptions = ['24', '48', 'custom'];
 
 type Props = {
@@ -24,6 +26,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
     const [aiSuggestion, setAiSuggestion] = useState('');
     const [fetchingAi, setFetchingAi] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [paymentInProgress, setPaymentInProgress] = useState<'solana' | 'seeker' | null>(null);
 
     const { token } = useAuth();
     const wallet = useWallet();
@@ -34,20 +37,30 @@ export default function HabitCreationScreen({ navigation }: Props) {
         return parseInt(customHours) || 24;
     };
 
-    const getMockAiSuggestion = async () => {
+    const getAiSuggestion = async () => {
         if (!title || !description) {
             Alert.alert("Missing Info", "Please fill out title and description first to get a suggestion.");
             return;
         }
+        const apiKey = normalizeApiKey(process.env.EXPO_PUBLIC_GEMINI_API_KEY);
+        if (!apiKey) {
+            Alert.alert("API Key Missing", "Add EXPO_PUBLIC_GEMINI_API_KEY to your .env to use AI suggestions.");
+            return;
+        }
         setFetchingAi(true);
-        // Simulate AI delay
-        setTimeout(() => {
-            setAiSuggestion("Try making this goal more measurable. For example, specify an exact metric to meet.");
+        try {
+            const suggestion = await requestGeminiSuggestion(title, description, apiKey);
+            setAiSuggestion(suggestion);
+        } catch (e: any) {
+            const msg = e?.message ?? "Could not get suggestion.";
+            Alert.alert("AI Suggestion Failed", msg);
+            setAiSuggestion("");
+        } finally {
             setFetchingAi(false);
-        }, 1500);
+        }
     };
 
-    const handleCreate = async () => {
+    const handleCreateWithSolana = async () => {
         if (!title) {
             Alert.alert("Error", "Title is required");
             return;
@@ -70,6 +83,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
         if (!pubkey) return;
 
         setCreating(true);
+        setPaymentInProgress('solana');
         try {
             const createRes = await axios.post(
                 `${API_URL}/tasks`,
@@ -79,6 +93,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     completeInHours: hours,
                     aiSuggestion: aiSuggestion || undefined,
                     userWalletAddress: pubkey.toBase58(),
+                    stakeType: 'solana',
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -114,8 +129,108 @@ export default function HabitCreationScreen({ navigation }: Props) {
             }
         } finally {
             setCreating(false);
+            setPaymentInProgress(null);
         }
     };
+
+    const handleCreateWithSKR = async () => {
+        if (!title) {
+            Alert.alert("Error", "Title is required");
+            return;
+        }
+        const hours = getHours();
+        if (hours <= 0) {
+            Alert.alert("Error", "Please enter a valid number of hours.");
+            return;
+        }
+
+        let pubkey = wallet.publicKey;
+        if (!pubkey) {
+            try {
+                pubkey = await wallet.connect();
+            } catch (e) {
+                Alert.alert("Wallet required", "Connect your Phantom wallet to stake SKR and create this habit.");
+                return;
+            }
+        }
+        if (!pubkey) return;
+
+        setCreating(true);
+        setPaymentInProgress('seeker');
+        try {
+            const createRes = await axios.post(
+                `${API_URL}/tasks`,
+                {
+                    title,
+                    description,
+                    completeInHours: hours,
+                    aiSuggestion: aiSuggestion || undefined,
+                    userWalletAddress: pubkey.toBase58(),
+                    stakeType: 'seeker',
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const task = createRes.data;
+            const { escrowAddress, escrowTokenAccount, stakeTokenMint, stakeTokenAmount } = task;
+            if (!escrowAddress || !escrowTokenAccount || !stakeTokenMint || !stakeTokenAmount) {
+                throw new Error("Server did not return Seeker stake details.");
+            }
+
+            const txSignature = await wallet.stakeSKR(
+                escrowTokenAccount,
+                escrowAddress,
+                stakeTokenMint,
+                stakeTokenAmount,
+                task.id,
+                SEEKER_DECIMALS,
+                pubkey
+            );
+
+            await axios.post(
+                `${API_URL}/tasks/${task.id}/confirm-stake`,
+                { txSignature },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            navigation.replace('Motivation');
+        } catch (error: any) {
+            console.error(error);
+            const errMsg = String(error?.message ?? error?.toString?.() ?? "");
+            const isCancelled =
+                errMsg.includes("CancellationException") ||
+                /cancell?ed/i.test(errMsg) ||
+                (error?.name === "SolanaMobileWalletAdapterError" && /cancell?/i.test(errMsg));
+            if (isCancelled) {
+                Alert.alert(
+                    "Wallet step cancelled",
+                    "You cancelled the connection or signing. Try again when you're ready to stake SKR."
+                );
+            } else {
+                const msg = error?.response?.data?.message || error?.message || "Please try again.";
+                Alert.alert("Failed to create task", msg);
+            }
+        } finally {
+            setCreating(false);
+            setPaymentInProgress(null);
+        }
+    };
+
+    const solanaButtonLabel =
+        wallet.connecting
+            ? 'Connecting...'
+            : wallet.sending && paymentInProgress === 'solana'
+                ? 'Confirm in Phantom...'
+                : creating && paymentInProgress === 'solana'
+                    ? 'Creating...'
+                    : 'Pay with Solana (0.01 SOL)';
+
+    const skrButtonLabel =
+        wallet.sending && paymentInProgress === 'seeker'
+            ? 'Confirm in Phantom...'
+            : creating && paymentInProgress === 'seeker'
+                ? 'Creating...'
+                : 'Pay with SKR (Seeker)';
 
     return (
         <KeyboardAvoidingView
@@ -196,7 +311,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
                                 <Text className="text-primary font-semibold text-base">AI Suggestion</Text>
                             </View>
                             {!aiSuggestion && !fetchingAi && (
-                                <TouchableOpacity onPress={getMockAiSuggestion} className="bg-primary/20 px-3 py-1 rounded-full">
+                                <TouchableOpacity onPress={getAiSuggestion} className="bg-primary/20 px-3 py-1 rounded-full">
                                     <Text className="text-primary font-semibold text-xs">Generate</Text>
                                 </TouchableOpacity>
                             )}
@@ -205,38 +320,38 @@ export default function HabitCreationScreen({ navigation }: Props) {
                         {fetchingAi ? (
                             <ActivityIndicator size="small" color="#84a98c" className="my-2" />
                         ) : aiSuggestion ? (
-                            <Text className="text-textMuted leading-5 italic">{aiSuggestion}</Text>
+                            <Text className="text-textMuted leading-5 italic">
+                                {aiSuggestion}
+                            </Text>
                         ) : (
                             <Text className="text-textMuted text-sm">Write a title and description to get feedback.</Text>
                         )}
                     </View>
                 </View>
 
-                {/* Spacing for bottom button */}
-                <View className="h-32" />
+                {/* Spacing for bottom buttons (Solana + SKR) */}
+                <View className="h-44" />
             </ScrollView>
 
-            <View className="absolute bottom-24 left-6 right-6 items-center">
-                <Text className="text-textMuted text-sm">
-                    Stakes 0.01 SOL — returned when you complete the task
-                </Text>
-            </View>
 
-            {/* Floating Create Button */}
-            <View className="absolute bottom-8 left-6 right-6">
+            {/* Floating Create Buttons: Solana and SKR */}
+            <View className="absolute bottom-8 left-6 right-6 gap-3">
                 <TouchableOpacity
-                    onPress={handleCreate}
+                    onPress={handleCreateWithSolana}
                     disabled={creating || wallet.connecting || wallet.sending}
                     className={`w-full bg-primary py-5 rounded-full items-center drop-shadow-none ${creating || wallet.connecting || wallet.sending ? 'opacity-70' : ''}`}
                 >
                     <Text className="text-background font-bold text-xl uppercase tracking-widest">
-                        {wallet.connecting
-                            ? 'Connecting...'
-                            : wallet.sending
-                                ? 'Confirm in Phantom...'
-                                : creating
-                                    ? 'Creating...'
-                                    : 'Stake 0.01 SOL & Create Habit'}
+                        {solanaButtonLabel}
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={handleCreateWithSKR}
+                    disabled={creating || wallet.connecting || wallet.sending}
+                    className={`w-full bg-surface border-2 border-primary py-5 rounded-full items-center ${creating || wallet.connecting || wallet.sending ? 'opacity-70' : ''}`}
+                >
+                    <Text className="text-primary font-bold text-lg uppercase tracking-widest">
+                        {skrButtonLabel}
                     </Text>
                 </TouchableOpacity>
             </View>

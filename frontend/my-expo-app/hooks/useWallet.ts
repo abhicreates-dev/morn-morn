@@ -12,6 +12,11 @@ import {
     LAMPORTS_PER_SOL,
     clusterApiUrl,
 } from "@solana/web3.js";
+import {
+    createAssociatedTokenAccountIdempotentInstruction,
+    createTransferCheckedInstruction,
+    getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 
 const APP_IDENTITY = {
     name: "Morn Morn",
@@ -26,7 +31,7 @@ export function useWallet() {
     const [connecting, setConnecting] = useState(false);
     const [sending, setSending] = useState(false);
 
-    const cluster = "devnet";
+    const cluster = "mainnet-beta";
     const connection = new Connection(clusterApiUrl(cluster), "confirmed");
 
     const connect = useCallback(async () => {
@@ -115,6 +120,80 @@ export function useWallet() {
         [publicKey, connection, cluster]
     );
 
+    const stakeSKR = useCallback(
+        async (
+            escrowTokenAccount: string,
+            escrowAddress: string,
+            mintAddress: string,
+            amountRaw: string,
+            taskId: string,
+            decimals: number,
+            fromPubkeyOverride?: PublicKey
+        ) => {
+            const fromPubkey = fromPubkeyOverride ?? publicKey;
+            if (!fromPubkey) throw new Error("Wallet not connected");
+
+            setSending(true);
+            try {
+                const mint = new PublicKey(mintAddress);
+                const sourceAta = getAssociatedTokenAddressSync(mint, fromPubkey);
+                const destAta = new PublicKey(escrowTokenAccount);
+                const escrowPubkey = new PublicKey(escrowAddress);
+
+                const createAtaIx = createAssociatedTokenAccountIdempotentInstruction(
+                    fromPubkey,
+                    destAta,
+                    escrowPubkey,
+                    mint
+                );
+
+                const transferIx = createTransferCheckedInstruction(
+                    sourceAta,
+                    mint,
+                    destAta,
+                    fromPubkey,
+                    BigInt(amountRaw),
+                    decimals
+                );
+
+                const memoIx = new TransactionInstruction({
+                    keys: [],
+                    programId: MEMO_PROGRAM_ID,
+                    data: Buffer.from(taskId, "utf8"),
+                });
+
+                const transaction = new Transaction()
+                    .add(createAtaIx)
+                    .add(transferIx)
+                    .add(memoIx);
+
+                const { blockhash } = await connection.getLatestBlockhash();
+                transaction.recentBlockhash = blockhash;
+                transaction.feePayer = fromPubkey;
+
+                const txSignature = await transact(
+                    async (wallet: Web3MobileWallet) => {
+                        await wallet.authorize({
+                            chain: `solana:${cluster}`,
+                            identity: APP_IDENTITY,
+                        });
+
+                        const signatures =
+                            await wallet.signAndSendTransactions({
+                                transactions: [transaction],
+                            });
+                        return signatures[0];
+                    }
+                );
+
+                return txSignature;
+            } finally {
+                setSending(false);
+            }
+        },
+        [publicKey, connection, cluster]
+    );
+
     return {
         publicKey,
         connected: !!publicKey,
@@ -123,6 +202,7 @@ export function useWallet() {
         connect,
         disconnect,
         stakeSOL,
+        stakeSKR,
         connection,
     };
 }

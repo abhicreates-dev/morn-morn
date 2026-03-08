@@ -39,6 +39,9 @@ model Task {
   userWalletAddress   String?
   stakeAmountLamports String?
   stakeReceivedAt     DateTime?
+  stakeType           String?
+  stakeTokenMint      String?
+  stakeTokenAmount    String?
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

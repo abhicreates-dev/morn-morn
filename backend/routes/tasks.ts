@@ -2,7 +2,14 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
 import { authenticate, type AuthRequest } from "../middleware/auth";
-import { getEscrowPublicKey } from "../escrow";
+import {
+    getEscrowPublicKey,
+    getEscrowTokenAccount,
+    sendSolTo,
+    sendTokenTo,
+    SEEKER_MINT,
+    STAKE_SKR_RAW,
+} from "../escrow";
 
 const router = Router();
 
@@ -16,12 +23,15 @@ const createTaskSchema = z.object({
     completeInHours: z.number().positive(),
     aiSuggestion: z.string().optional(),
     userWalletAddress: z.string().min(32).optional(),
+    stakeType: z.enum(["solana", "seeker"]).optional(),
 });
 
 router.post("/", async (req: AuthRequest, res) => {
     try {
         const parsedData = createTaskSchema.parse(req.body);
+        const stakeType = parsedData.stakeType ?? "solana";
         const withStake = !!parsedData.userWalletAddress;
+        const isSeeker = stakeType === "seeker";
 
         const now = new Date();
         const deadlineTimestamp = new Date(now.getTime() + parsedData.completeInHours * 60 * 60 * 1000);
@@ -36,12 +46,27 @@ router.post("/", async (req: AuthRequest, res) => {
                 deadlineTimestamp,
                 userId: req.userId!,
                 userWalletAddress: parsedData.userWalletAddress ?? null,
-                stakeAmountLamports: withStake ? STAKE_LAMPORTS : null,
+                stakeAmountLamports: withStake && !isSeeker ? STAKE_LAMPORTS : null,
+                stakeType: withStake ? stakeType : null,
+                stakeTokenMint: withStake && isSeeker ? SEEKER_MINT : null,
+                stakeTokenAmount: withStake && isSeeker ? STAKE_SKR_RAW : null,
             },
         });
 
         if (!withStake) {
             return res.status(201).json(task);
+        }
+
+        if (isSeeker) {
+            const escrowTokenAccount = getEscrowTokenAccount(SEEKER_MINT);
+            return res.status(201).json({
+                ...task,
+                escrowAddress: getEscrowPublicKey(),
+                escrowTokenAccount,
+                stakeType: "seeker",
+                stakeTokenMint: SEEKER_MINT,
+                stakeTokenAmount: STAKE_SKR_RAW,
+            });
         }
 
         const escrowAddress = getEscrowPublicKey();
@@ -140,18 +165,20 @@ router.post("/complete", async (req: AuthRequest, res) => {
         }
 
         let refundTxSignature: string | null = null;
-        if (
-            parsedData.success &&
-            task.stakeReceivedAt &&
-            task.userWalletAddress &&
-            task.stakeAmountLamports
-        ) {
+        if (parsedData.success && task.stakeReceivedAt && task.userWalletAddress) {
             try {
-                const { sendSolTo } = await import("../escrow");
-                refundTxSignature = await sendSolTo(
-                    task.userWalletAddress,
-                    BigInt(task.stakeAmountLamports)
-                );
+                if (task.stakeType === "seeker" && task.stakeTokenMint && task.stakeTokenAmount) {
+                    refundTxSignature = await sendTokenTo(
+                        task.userWalletAddress,
+                        task.stakeTokenMint,
+                        task.stakeTokenAmount
+                    );
+                } else if (task.stakeAmountLamports) {
+                    refundTxSignature = await sendSolTo(
+                        task.userWalletAddress,
+                        BigInt(task.stakeAmountLamports)
+                    );
+                }
             } catch (err) {
                 console.error("Refund failed:", err);
             }

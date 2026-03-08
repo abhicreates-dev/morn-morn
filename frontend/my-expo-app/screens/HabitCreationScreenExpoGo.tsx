@@ -6,6 +6,7 @@ import axios from 'axios';
 import { API_URL } from '../config';
 import { useAuth } from '../stores/useAuth';
 import { Feather } from '@expo/vector-icons';
+import { normalizeApiKey, requestGeminiSuggestion } from '../lib/gemini';
 
 type Props = {
     navigation: StackNavigationProp<RootStackParamList, 'HabitCreation'>;
@@ -33,16 +34,27 @@ export default function HabitCreationScreenExpoGo({ navigation }: Props) {
         return parseInt(customHours) || 24;
     };
 
-    const getMockAiSuggestion = async () => {
+    const getAiSuggestion = async () => {
         if (!title || !description) {
             Alert.alert("Missing Info", "Please fill out title and description first to get a suggestion.");
             return;
         }
+        const apiKey = normalizeApiKey(process.env.EXPO_PUBLIC_GEMINI_API_KEY);
+        if (!apiKey) {
+            Alert.alert("API Key Missing", "Add EXPO_PUBLIC_GEMINI_API_KEY to your .env to use AI suggestions.");
+            return;
+        }
         setFetchingAi(true);
-        setTimeout(() => {
-            setAiSuggestion("Try making this goal more measurable. For example, specify an exact metric to meet.");
+        try {
+            const suggestion = await requestGeminiSuggestion(title, description, apiKey);
+            setAiSuggestion(suggestion);
+        } catch (e: any) {
+            const msg = e?.message ?? "Could not get suggestion.";
+            Alert.alert("AI Suggestion Failed", msg);
+            setAiSuggestion("");
+        } finally {
             setFetchingAi(false);
-        }, 1500);
+        }
     };
 
     const handleCreate = async () => {
@@ -161,7 +173,7 @@ export default function HabitCreationScreenExpoGo({ navigation }: Props) {
                                 <Text className="text-primary font-semibold text-base">AI Suggestion</Text>
                             </View>
                             {!aiSuggestion && !fetchingAi && (
-                                <TouchableOpacity onPress={getMockAiSuggestion} className="bg-primary/20 px-3 py-1 rounded-full">
+                                <TouchableOpacity onPress={getAiSuggestion} className="bg-primary/20 px-3 py-1 rounded-full">
                                     <Text className="text-primary font-semibold text-xs">Generate</Text>
                                 </TouchableOpacity>
                             )}

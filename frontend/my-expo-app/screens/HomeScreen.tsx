@@ -138,7 +138,7 @@ export default function HomeScreen({ navigation }: Props) {
                             <TouchableOpacity
                                 disabled={!isActive}
                                 className={`px-5 py-2 rounded-2xl border flex-row items-center ml-4 ${isActive ? 'border-surfaceLight bg-surface' : 'border-surfaceLight/50 bg-background/50 opacity-60'}`}
-                                onPress={() => navigation.navigate('Verification', { taskId: item.id })}
+                                onPress={() => navigation.navigate('Verification', { taskId: item.id, taskTitle: item.title, taskDescription: item.description })}
                             >
                                 <Text className="text-textMain font-medium mr-2 text-base w-20 text-center">
                                     {isSuccess ? 'Done' : 'Complete'}
@@ -162,7 +162,7 @@ export default function HomeScreen({ navigation }: Props) {
                     <Text className="text-textMain font-semibold text-2xl tracking-tight leading-tight mb-1">Welcome, {firstName}</Text>
                     <Text className="text-textMuted font-medium">{formattedDate} 2026</Text>
                 </View>
-                <TouchableOpacity onPress={() => logout()} className="mt-1">
+                <TouchableOpacity onPress={() => { logout(); navigation.replace('Auth'); }} className="mt-1">
                     <Feather name="log-out" size={20} color="#cad2c5" />
                 </TouchableOpacity>
             </View>

@@ -1,59 +1,138 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image } from 'react-native';
 import { useState } from 'react';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList } from '../App';
 import { Feather } from '@expo/vector-icons';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { useAuth } from '../stores/useAuth';
+import { normalizeApiKey, verifyPhotoWithGemini } from '../lib/gemini';
 
 type Props = {
     navigation: StackNavigationProp<RootStackParamList, 'Verification'>;
     route: RouteProp<RootStackParamList, 'Verification'>;
 };
 
+type SelectedImage = { base64: string; mimeType: string; uri?: string };
+
 export default function VerificationScreen({ navigation, route }: Props) {
-    const { taskId } = route.params;
+    const { taskId, taskTitle, taskDescription } = route.params;
     const { token } = useAuth();
+
+    const taskTextForGemini = [taskTitle, taskDescription].filter(Boolean).join(' – ') || 'Task';
 
     const [proofType, setProofType] = useState<'photo' | 'text'>('text');
     const [explanation, setExplanation] = useState('');
+    const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
     const [verifying, setVerifying] = useState(false);
+
+    const pickImage = async (useCamera: boolean) => {
+        try {
+            if (useCamera) {
+                const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                if (status !== 'granted') {
+                    Alert.alert("Permission", "Camera access is needed to take a photo.");
+                    return;
+                }
+                const result = await ImagePicker.launchCameraAsync({
+                    mediaTypes: ['images'],
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 0.5,
+                    base64: true,
+                });
+                if (!result.canceled && result.assets?.[0]?.base64) {
+                    const asset = result.assets[0];
+                    setSelectedImage({
+                        base64: String(asset.base64),
+                        mimeType: asset.mimeType ?? 'image/jpeg',
+                        uri: asset.uri,
+                    });
+                }
+            } else {
+                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (status !== 'granted') {
+                    Alert.alert("Permission", "Photo library access is needed to choose a photo.");
+                    return;
+                }
+                const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ['images'],
+                    allowsEditing: true,
+                    aspect: [1, 1],
+                    quality: 0.5,
+                    base64: true,
+                });
+                if (!result.canceled && result.assets?.[0]?.base64) {
+                    const asset = result.assets[0];
+                    setSelectedImage({
+                        base64: String(asset.base64),
+                        mimeType: asset.mimeType ?? 'image/jpeg',
+                        uri: asset.uri,
+                    });
+                }
+            }
+        } catch (e: any) {
+            Alert.alert("Error", e?.message ?? "Could not pick image.");
+        }
+    };
+
+    const showPhotoOptions = () => {
+        Alert.alert("Add photo", "Choose a photo as proof.", [
+            { text: "Take photo", onPress: () => pickImage(true) },
+            { text: "Choose from gallery", onPress: () => pickImage(false) },
+            { text: "Cancel", style: "cancel" },
+        ]);
+    };
 
     const handleVerify = async () => {
         if (proofType === 'text' && explanation.trim().length === 0) {
             Alert.alert("Missing Proof", "Please write an explanation to verify your task.");
             return;
         }
+        if (proofType === 'photo' && !selectedImage) {
+            Alert.alert("Missing Photo", "Please select a photo to verify your task.");
+            return;
+        }
 
         setVerifying(true);
+        try {
+            let success: boolean;
+            let proofExplanation: string;
 
-        // Simulate direct-to-frontend AI validation layer
-        setTimeout(async () => {
-            // Mock logic: randomly succeed or fail based on keyword (to test both flows)
-            // If user types "fail" explicitly, we trigger failure. Otherwise success.
-            const isSuccess = !explanation.toLowerCase().includes('fail');
-
-            try {
-                // Send actual result to backend
-                await axios.post(
-                    `${API_URL}/tasks/complete`,
-                    {
-                        taskId,
-                        success: isSuccess,
-                        proofExplanation: explanation,
-                    },
-                    { headers: { Authorization: `Bearer ${token}` } }
+            if (proofType === 'photo' && selectedImage) {
+                const apiKey = normalizeApiKey(process.env.EXPO_PUBLIC_GEMINI_API_KEY);
+                if (!apiKey) {
+                    Alert.alert("API Key Missing", "Add EXPO_PUBLIC_GEMINI_API_KEY to your .env for photo verification.");
+                    setVerifying(false);
+                    return;
+                }
+                const raw = await verifyPhotoWithGemini(
+                    selectedImage.base64,
+                    selectedImage.mimeType,
+                    taskTextForGemini,
+                    apiKey
                 );
-
-                navigation.replace('Result', { success: isSuccess });
-            } catch (error) {
-                console.error("Verification backend error", error);
-                Alert.alert("Error", "Could not complete verification process.");
-                setVerifying(false);
+                success = raw === 'true' || (raw.includes('true') && !raw.includes('false'));
+                proofExplanation = 'Photo verified by AI';
+            } else {
+                success = !explanation.toLowerCase().includes('fail');
+                proofExplanation = explanation;
             }
-        }, 2000);
+
+            await axios.post(
+                `${API_URL}/tasks/complete`,
+                { taskId, success, proofExplanation },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            navigation.replace('Result', { success });
+        } catch (error: any) {
+            console.error("Verification error", error);
+            Alert.alert("Error", error?.response?.data?.message ?? error?.message ?? "Could not complete verification.");
+        } finally {
+            setVerifying(false);
+        }
     };
 
     return (
@@ -94,11 +173,25 @@ export default function VerificationScreen({ navigation, route }: Props) {
 
                 {/* Proof Entry Area */}
                 {proofType === 'photo' ? (
-                    <View className="h-48 bg-surface border border-surfaceLight drop-shadow-none rounded-3xl justify-center items-center border-dashed">
-                        <Feather name="upload-cloud" size={40} color="#84a98c" className="mb-4" />
-                        <Text className="text-textMuted font-medium">Tap to upload a screenshot</Text>
-                        <Text className="text-textMuted text-xs mt-2">(Mocked for now)</Text>
-                    </View>
+                    <TouchableOpacity
+                        onPress={showPhotoOptions}
+                        className="h-48 bg-surface border border-surfaceLight drop-shadow-none rounded-3xl justify-center items-center border-dashed"
+                    >
+                        {selectedImage?.uri ? (
+                            <View className="w-full h-full rounded-3xl overflow-hidden">
+                                <Image source={{ uri: selectedImage.uri }} className="w-full h-full" resizeMode="cover" />
+                                <View className="absolute inset-0 justify-end pb-2 items-center">
+                                    <Text className="text-textMain font-medium bg-black/50 px-3 py-1 rounded">Tap to change</Text>
+                                </View>
+                            </View>
+                        ) : (
+                            <>
+                                <Feather name="upload-cloud" size={40} color="#84a98c" className="mb-4" />
+                                <Text className="text-textMuted font-medium">Tap to upload a photo</Text>
+                                <Text className="text-textMuted text-xs mt-2">Camera or gallery</Text>
+                            </>
+                        )}
+                    </TouchableOpacity>
                 ) : (
                     <View>
                         <Text className="text-textMain font-semibold mb-2 ml-1 text-base">Explanation</Text>
