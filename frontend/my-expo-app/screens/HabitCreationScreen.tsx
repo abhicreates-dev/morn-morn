@@ -28,7 +28,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
     const [creating, setCreating] = useState(false);
     const [paymentInProgress, setPaymentInProgress] = useState<'solana' | 'seeker' | null>(null);
 
-    const { token } = useAuth();
+    const { token, logout } = useAuth();
     const wallet = useWallet();
 
     const getHours = (): number => {
@@ -81,6 +81,11 @@ export default function HabitCreationScreen({ navigation }: Props) {
             }
         }
         if (!pubkey) return;
+        if (!token) {
+            Alert.alert("Please sign in", "Your session is missing. Sign in again to create a habit.");
+            navigation.replace('Auth');
+            return;
+        }
 
         setCreating(true);
         setPaymentInProgress('solana');
@@ -95,7 +100,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     userWalletAddress: pubkey.toBase58(),
                     stakeType: 'solana',
                 },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 }
             );
 
             const task = createRes.data;
@@ -104,15 +109,26 @@ export default function HabitCreationScreen({ navigation }: Props) {
 
             const txSignature = await wallet.stakeSOL(escrowAddress, amountSOL, task.id, pubkey);
 
+            await new Promise(resolve => setTimeout(resolve, 1200));
+
             await axios.post(
                 `${API_URL}/tasks/${task.id}/confirm-stake`,
                 { txSignature },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 }
             );
 
             navigation.replace('Motivation');
         } catch (error: any) {
-            console.error(error);
+            console.log(error);
+
+             console.log("AXIOS ERROR:", {
+                message: error?.message,
+                code: error?.code,
+                status: error?.response?.status,
+                data: error?.response?.data,
+            });
+
+
             const errMsg = String(error?.message ?? error?.toString?.() ?? "");
             const isCancelled =
                 errMsg.includes("CancellationException") ||
@@ -122,6 +138,25 @@ export default function HabitCreationScreen({ navigation }: Props) {
                 Alert.alert(
                     "Wallet step cancelled",
                     "You cancelled the connection or signing. Try again when you're ready to stake 0.01 SOL."
+                );
+            } else if (error?.response?.status === 401) {
+                logout();
+                Alert.alert("Session expired", "Please sign in again to create a habit.");
+                navigation.replace('Auth');
+            } else if (error?.response?.status === 503) {
+                Alert.alert(
+                    "Server configuration error",
+                    error?.response?.data?.message || "Escrow is not configured on the server. Try again later or contact support."
+                );
+            } else if (error?.code === 'ECONNABORTED' || errMsg.toLowerCase().includes('timeout')) {
+                Alert.alert(
+                    "Request took too long",
+                    "The server is slow to respond. Check your connection and try again."
+                );
+            } else if (error?.code === 'ERR_NETWORK' || errMsg.toLowerCase().includes('network error')) {
+                Alert.alert(
+                    "Cannot reach server",
+                    "Check your internet connection and that the app can reach the server. If the problem continues, the server may be down or blocking this device."
                 );
             } else {
                 const msg = error?.response?.data?.message || error?.message || "Please try again.";
@@ -154,6 +189,11 @@ export default function HabitCreationScreen({ navigation }: Props) {
             }
         }
         if (!pubkey) return;
+        if (!token) {
+            Alert.alert("Please sign in", "Your session is missing. Sign in again to create a habit.");
+            navigation.replace('Auth');
+            return;
+        }
 
         setCreating(true);
         setPaymentInProgress('seeker');
@@ -168,7 +208,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
                     userWalletAddress: pubkey.toBase58(),
                     stakeType: 'seeker',
                 },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 }
             );
 
             const task = createRes.data;
@@ -190,7 +230,7 @@ export default function HabitCreationScreen({ navigation }: Props) {
             await axios.post(
                 `${API_URL}/tasks/${task.id}/confirm-stake`,
                 { txSignature },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: { Authorization: `Bearer ${token}` }, timeout: 30000 }
             );
 
             navigation.replace('Motivation');
@@ -205,6 +245,25 @@ export default function HabitCreationScreen({ navigation }: Props) {
                 Alert.alert(
                     "Wallet step cancelled",
                     "You cancelled the connection or signing. Try again when you're ready to stake SKR."
+                );
+            } else if (error?.response?.status === 401) {
+                logout();
+                Alert.alert("Session expired", "Please sign in again to create a habit.");
+                navigation.replace('Auth');
+            } else if (error?.response?.status === 503) {
+                Alert.alert(
+                    "Server configuration error",
+                    error?.response?.data?.message || "Escrow is not configured on the server. Try again later or contact support."
+                );
+            } else if (error?.code === 'ECONNABORTED' || errMsg.toLowerCase().includes('timeout')) {
+                Alert.alert(
+                    "Request took too long",
+                    "The server is slow to respond. Check your connection and try again."
+                );
+            } else if (error?.code === 'ERR_NETWORK' || errMsg.toLowerCase().includes('network error')) {
+                Alert.alert(
+                    "Cannot reach server",
+                    "Check your internet connection and that the app can reach the server. If the problem continues, the server may be down or blocking this device."
                 );
             } else {
                 const msg = error?.response?.data?.message || error?.message || "Please try again.";

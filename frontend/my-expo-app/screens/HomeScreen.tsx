@@ -82,10 +82,14 @@ export default function HomeScreen({ navigation }: Props) {
             setLoading(false);
             return;
         }
+    
         try {
             const res = await axios.get(`${API_URL}/tasks/today`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+    
+            console.log("TASKS FROM API:", res.data);   // 👈 ADD THIS
+    
             setTasks(res.data);
         } catch (error: any) {
             if (error?.response?.status === 401) {

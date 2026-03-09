@@ -57,24 +57,30 @@ router.post("/", async (req: AuthRequest, res) => {
             return res.status(201).json(task);
         }
 
-        if (isSeeker) {
-            const escrowTokenAccount = getEscrowTokenAccount(SEEKER_MINT);
+        try {
+            if (isSeeker) {
+                const escrowTokenAccount = getEscrowTokenAccount(SEEKER_MINT);
+                return res.status(201).json({
+                    ...task,
+                    escrowAddress: getEscrowPublicKey(),
+                    escrowTokenAccount,
+                    stakeType: "seeker",
+                    stakeTokenMint: SEEKER_MINT,
+                    stakeTokenAmount: STAKE_SKR_RAW,
+                });
+            }
+            const escrowAddress = getEscrowPublicKey();
             return res.status(201).json({
                 ...task,
-                escrowAddress: getEscrowPublicKey(),
-                escrowTokenAccount,
-                stakeType: "seeker",
-                stakeTokenMint: SEEKER_MINT,
-                stakeTokenAmount: STAKE_SKR_RAW,
+                escrowAddress,
+                stakeAmountLamports: STAKE_LAMPORTS,
+            });
+        } catch (escrowError: any) {
+            console.error("Escrow error on create task:", escrowError);
+            return res.status(503).json({
+                message: "Escrow not configured. Ensure ESCROW_PRIVATE_KEY is set on the server.",
             });
         }
-
-        const escrowAddress = getEscrowPublicKey();
-        res.status(201).json({
-            ...task,
-            escrowAddress,
-            stakeAmountLamports: STAKE_LAMPORTS,
-        });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ message: "Validation error", errors: error.errors });
