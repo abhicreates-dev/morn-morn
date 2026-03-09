@@ -33,6 +33,10 @@ yarn-error.log*
 ios/
 android/
 
+# release signing (do not commit keystore or passwords)
+android/app/release.keystore
+android/gradle.properties
+
 # macOS
 .DS_Store
 

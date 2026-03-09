@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "morn-morn",
+    "slug": "morn-morn",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,7 +30,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.myexpoapp"
+      "package": "com.mornmorn.app",
+      "versionCode": 1
     }
   }
 }

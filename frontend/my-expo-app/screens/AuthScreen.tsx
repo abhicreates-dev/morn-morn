@@ -30,7 +30,6 @@ export default function AuthScreen({ navigation }: Props) {
             const endpoint = isLogin ? '/auth/login' : '/auth/signup';
             const payload = isLogin ? { email, password } : { name, email, password };
 
-
             console.log("API URL:", `${API_URL}${endpoint}`);
             const response = await fetch(`${API_URL}${endpoint}`, {
                 method: "POST",
@@ -40,17 +39,30 @@ export default function AuthScreen({ navigation }: Props) {
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
-            console.log(data);
+            const data = await response.json().catch(() => ({}));
+            console.log("Auth response:", response.status, data);
+
+            if (!response.ok) {
+                const message = (data && typeof data.message === 'string') ? data.message : "Invalid credentials or server error.";
+                Alert.alert("Authentication Failed", message);
+                return;
+            }
+
+            if (!data.token || !data.user) {
+                Alert.alert("Authentication Failed", "Invalid response from server.");
+                return;
+            }
 
             setToken(data.token);
             setUser(data.user);
-
-            // Navigate to Home internally inside Auth screen or let top-level navigator handle it via auth state
             navigation.replace('Home');
         } catch (error: any) {
-            console.error(error);
-            Alert.alert("Authentication Failed", error.response?.data?.message || "An error occurred");
+            console.error("Auth request error:", error);
+            const isNetworkError = !error?.response && (error?.message?.includes('fetch') || error?.name === 'TypeError' || error?.message === 'Network request failed');
+            const message = isNetworkError
+                ? "Network error. Check your internet connection and that the server is reachable, then try again."
+                : (error?.response?.data?.message || error?.message || "An error occurred");
+            Alert.alert("Authentication Failed", message);
         } finally {
             setLoading(false);
         }
