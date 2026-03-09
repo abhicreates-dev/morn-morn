@@ -12,6 +12,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on("finish", () => {
+        console.log(`${req.method} ${req.path} ${res.statusCode} ${Date.now() - start}ms`);
+    });
+    next();
+});
+
 app.use("/auth", authRouter);
 app.use("/tasks", tasksRouter);
 

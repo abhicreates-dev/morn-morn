@@ -11,21 +11,23 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        console.warn("Auth 401: no Bearer header", req.method, req.path);
         return res.status(401).json({ message: "Unauthorized" });
     }
 
     const token = authHeader.split(" ")[1];
 
     if (!token) {
+        console.warn("Auth 401: missing token", req.method, req.path);
         return res.status(401).json({ message: "Unauthorized: Missing token" });
     }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as unknown as { userId: string };
         req.userId = decoded.userId;
-        console.log("DECODED USER ID:", decoded.userId);
         next();
     } catch (error) {
+        console.warn("Auth 401: invalid token", req.method, req.path, (error as Error)?.message);
         return res.status(401).json({ message: "Invalid token" });
     }
 };

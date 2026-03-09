@@ -27,6 +27,7 @@ const createTaskSchema = z.object({
 });
 
 router.post("/", async (req: AuthRequest, res) => {
+    console.log("POST /tasks (create) received", req.userId ? `userId=${req.userId}` : "no userId");
     try {
         const parsedData = createTaskSchema.parse(req.body);
         const stakeType = parsedData.stakeType ?? "solana";
@@ -123,8 +124,9 @@ const confirmStakeSchema = z.object({
 });
 
 router.post("/:id/confirm-stake", async (req: AuthRequest, res) => {
+    const taskId = req.params.id;
+    console.log("POST /tasks confirm-stake received", { taskId });
     try {
-        const taskId = req.params.id;
         const { txSignature } = confirmStakeSchema.parse(req.body);
 
         const task = await prisma.task.findUnique({ where: { id: taskId } });
