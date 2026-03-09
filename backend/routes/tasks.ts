@@ -119,6 +119,33 @@ router.get("/today", async (req: AuthRequest, res) => {
     }
 });
 
+router.get("/progress", async (req: AuthRequest, res) => {
+    try {
+        const now = new Date();
+        const todayEnd = new Date(now);
+        todayEnd.setHours(23, 59, 59, 999);
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const tasks = await prisma.task.findMany({
+            where: {
+                userId: req.userId!,
+                dateCreated: {
+                    gte: sevenDaysAgo,
+                    lte: todayEnd,
+                },
+            },
+            select: { id: true, dateCreated: true, completed: true },
+        });
+
+        res.json(tasks);
+    } catch (error) {
+        console.error("Fetch progress error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 const confirmStakeSchema = z.object({
     txSignature: z.string(),
 });

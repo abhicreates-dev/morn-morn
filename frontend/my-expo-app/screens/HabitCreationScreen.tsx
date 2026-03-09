@@ -75,8 +75,23 @@ export default function HabitCreationScreen({ navigation }: Props) {
         if (!pubkey) {
             try {
                 pubkey = await wallet.connect();
-            } catch (e) {
-                Alert.alert("Wallet required", "Connect your Phantom wallet to stake 0.01 SOL and create this habit.");
+            } catch (e: any) {
+                const msg = String(e?.message ?? e?.toString?.() ?? "").toLowerCase();
+                const cancelled = /cancell?ed/i.test(msg) || msg.includes("user denied") || msg.includes("rejected");
+                const noWallet = msg.includes("no wallet") || msg.includes("not found") || msg.includes("unavailable");
+                if (cancelled) {
+                    Alert.alert("Connection cancelled", "Open Phantom when prompted and approve the connection to continue.");
+                } else if (noWallet) {
+                    Alert.alert(
+                        "Phantom not found",
+                        "Install Phantom wallet from the App Store / Play Store, then try again. Wallet connect only works in a development build, not in Expo Go."
+                    );
+                } else {
+                    Alert.alert(
+                        "Wallet connection failed",
+                        "Make sure Phantom is installed and try again. If you're in Expo Go, use a development build (expo run:ios / run:android) to connect a wallet.\n\n" + (e?.message || "Unknown error")
+                    );
+                }
                 return;
             }
         }
@@ -183,8 +198,23 @@ export default function HabitCreationScreen({ navigation }: Props) {
         if (!pubkey) {
             try {
                 pubkey = await wallet.connect();
-            } catch (e) {
-                Alert.alert("Wallet required", "Connect your Phantom wallet to stake SKR and create this habit.");
+            } catch (e: any) {
+                const msg = String(e?.message ?? e?.toString?.() ?? "").toLowerCase();
+                const cancelled = /cancell?ed/i.test(msg) || msg.includes("user denied") || msg.includes("rejected");
+                const noWallet = msg.includes("no wallet") || msg.includes("not found") || msg.includes("unavailable");
+                if (cancelled) {
+                    Alert.alert("Connection cancelled", "Open Phantom when prompted and approve the connection to continue.");
+                } else if (noWallet) {
+                    Alert.alert(
+                        "Phantom not found",
+                        "Install Phantom wallet from the App Store / Play Store, then try again. Wallet connect only works in a development build, not in Expo Go."
+                    );
+                } else {
+                    Alert.alert(
+                        "Wallet connection failed",
+                        "Make sure Phantom is installed and try again. If you're in Expo Go, use a development build (expo run:ios / run:android) to connect a wallet.\n\n" + (e?.message || "Unknown error")
+                    );
+                }
                 return;
             }
         }

@@ -14,6 +14,7 @@ import HomeScreen from './screens/HomeScreen';
 import MotivationScreen from './screens/MotivationScreen';
 import VerificationScreen from './screens/VerificationScreen';
 import ResultScreen from './screens/ResultScreen';
+import ProgressScreen from './screens/ProgressScreen';
 
 const HabitCreationScreen = React.lazy(() =>
   Constants.appOwnership === 'expo'
@@ -26,6 +27,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Home: undefined;
   HabitCreation: undefined;
+  Progress: undefined;
   Motivation: undefined;
   Verification: { taskId: string; taskTitle?: string; taskDescription?: string };
   Result: { success: boolean };
@@ -49,6 +51,7 @@ export default function App() {
             <Stack.Screen name="Auth" component={AuthScreen} />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="HabitCreation" component={HabitCreationScreen} />
+            <Stack.Screen name="Progress" component={ProgressScreen} />
             <Stack.Screen name="Motivation" component={MotivationScreen} />
             <Stack.Screen name="Verification" component={VerificationScreen} />
             <Stack.Screen name="Result" component={ResultScreen} />

@@ -97,7 +97,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                 </View>
 
                 {/* Hint */}
-               
+
 
                 {/* Centered large squircle card with typography hierarchy */}
                 <Animated.View
@@ -107,14 +107,14 @@ export default function OnboardingScreen({ navigation }: Props) {
                         cardAnimatedStyle,
                     ]}
                 >
-                    <Text style={[styles.smallSerif, { fontFamily: SERIF }]}>
+                    <Text style={[styles.smallSerif]}>
                         I make a promise
                     </Text>
                     <Text style={[styles.largeBoldSerif, { fontFamily: SERIF }]}>
                         to myself.
                     </Text>
                     <View style={styles.spacing} />
-                    <Text style={[styles.smallLightSerif, { fontFamily: SERIF }]}>
+                    <Text style={[styles.smallLightSerif]}>
                         I will not lie to myself
                     </Text>
                     <Text style={[styles.largeBoldSerifLast, { fontFamily: SERIF }]}>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#cad2c5',
         textAlign: 'center',
-        fontWeight: '300',
+        fontWeight: '400',
     },
     spacing: {
         height: 20,

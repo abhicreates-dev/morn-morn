@@ -176,9 +176,17 @@ export default function HomeScreen({ navigation }: Props) {
                     <Text className="text-textMain font-semibold text-2xl tracking-tight leading-tight mb-1">Welcome, {firstName}</Text>
                     <Text className="text-textMuted font-medium">{formattedDate} 2026</Text>
                 </View>
-                <TouchableOpacity onPress={() => { logout(); navigation.replace('Auth'); }} className="mt-1">
-                    <Feather name="log-out" size={20} color="#cad2c5" />
-                </TouchableOpacity>
+                <View className="flex-row items-center gap-4 mt-1">
+                    <TouchableOpacity className="flex-row items-center px-4 py-2 rounded-2xl bg-surface" onPress={() => navigation.navigate('Progress')}>
+                        <Text className="text-textMain font-medium mr-2 text-base  text-center">
+                            Progress
+                        </Text>
+                        <Feather name="trending-up" size={20} color="#cad2c5" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { logout(); navigation.replace('Auth'); }}>
+                        <Feather name="log-out" size={20} color="#cad2c5" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Calendar Strip */}

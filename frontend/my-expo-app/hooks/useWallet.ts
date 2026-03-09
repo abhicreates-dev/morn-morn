@@ -50,8 +50,8 @@ export function useWallet() {
             );
             setPublicKey(pubkey);
             return pubkey;
-        } catch (error) {
-            console.error("Connect failed:", error);
+        } catch (error: any) {
+            console.error("Wallet connect failed:", error?.message ?? error);
             throw error;
         } finally {
             setConnecting(false);
